@@ -1,0 +1,2540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRAT PARTS AUTOPARTES - Sistema Integral</title>
+    <!-- OCR Engine v5 -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- jsPDF para comprobantes PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- ExcelJS & FileSaver para reportes con formato avanzado, estilos y logotipos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #020617;
+            --bg-card: #0f172a;
+            --border: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --text-muted: #64748b;
+            --input-bg: #020617;
+            --table-hover: rgba(255, 255, 255, 0.03);
+            --modal-overlay: rgba(2, 6, 23, 0.95);
+            --bg-image-opacity: 0.15;
+            --accent-color: #f59e0b;
+            --accent-color-hover: #d97706;
+            --accent-contrast: #020617;
+        }
+
+        body.light-mode {
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --border: #cbd5e1;
+            --text-main: #0f172a;
+            --text-sub: #334155;
+            --text-muted: #64748b;
+            --input-bg: #f8fafc;
+            --table-hover: rgba(0, 0, 0, 0.02);
+            --modal-overlay: rgba(241, 245, 249, 0.95);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; transition: background-color 0.3s, color 0.3s; position: relative; }
+
+        /* IMAGEN DE FONDO CORPORATIVO */
+        body.has-bg-image::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: var(--bg-image-url);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            opacity: var(--bg-image-opacity);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #pantallaLogin, .modal-backdrop, header, main, footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        #pantallaLogin .login-box, .modal-backdrop .modal-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        #pantallaLogin, .modal-backdrop {
+            position: fixed; inset: 0; background: var(--modal-overlay);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; padding: 20px;
+        }
+        .login-box, .modal-content {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+            padding: 25px; max-width: 450px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 2;
+        }
+        .pin-input {
+            width: 100%; text-align: center; font-size: 1.8rem; letter-spacing: 0.4em;
+            background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px;
+            color: var(--accent-color); padding: 12px; margin: 15px 0; outline: none; font-family: monospace;
+        }
+        
+        header {
+            background: var(--bg-card); border-bottom: 1px solid var(--border);
+            padding: 12px 20px; display: flex; justify-content: space-between;
+            align-items: center; flex-wrap: wrap; gap: 12px; position: sticky; top: 0; z-index: 100;
+        }
+        .brand { font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--text-main); font-size: 1.1rem; position: relative; z-index: 2; }
+        .brand span { color: var(--accent-color); }
+        
+        .nav-tabs { display: flex; gap: 4px; background: var(--input-bg); padding: 4px; border-radius: 14px; border: 1px solid var(--border); position: relative; z-index: 2; }
+        .tab-btn {
+            background: transparent; border: none; color: var(--text-muted); padding: 8px 14px;
+            border-radius: 10px; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: 0.2s;
+        }
+        .tab-btn.active { background: var(--accent-color); color: var(--accent-contrast); }
+        
+        .rate-control {
+            background: var(--input-bg); border: 1px solid var(--border); padding: 6px 12px;
+            border-radius: 10px; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; color: var(--text-muted);
+            position: relative;
+            z-index: 2;
+        }
+        .rate-control input {
+            width: 55px; background: transparent; border: none; color: var(--accent-color);
+            font-weight: bold; font-family: monospace; text-align: right; font-size: 0.9rem; outline: none;
+        }
+
+        .btn {
+            width: 100%; padding: 12px; border: none; border-radius: 12px;
+            font-weight: 800; cursor: pointer; font-size: 0.8rem; text-transform: uppercase;
+            letter-spacing: 0.5px; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            position: relative;
+            z-index: 2;
+        }
+        .btn-amber { background: var(--accent-color); color: var(--accent-contrast); }
+        .btn-amber:hover { background: var(--accent-color-hover); }
+        .btn-blue { background: #2563eb; color: #fff; }
+        .btn-blue:hover { background: #1d4ed8; }
+        .btn-emerald { background: #059669; color: #fff; }
+        .btn-emerald:hover { background: #047857; }
+        .btn-dark { background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--border); }
+        .btn-dark:hover { color: var(--text-main); }
+        .btn-rose { background: #f43f5e; color: #fff; }
+        .btn-rose:hover { background: #e11d48; }
+        .btn-purple { background: #7c3aed; color: #fff; }
+        .btn-purple:hover { background: #6d28d9; }
+        .btn-whatsapp { background: #25D366; color: #fff; }
+        .btn-whatsapp:hover { background: #1da851; }
+
+        main { max-width: 1200px; margin: 20px auto; padding: 0 16px; flex: 1; width: 100%; position: relative; z-index: 1; }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); position: relative; z-index: 1; }
+        .card h2 { font-size: 0.9rem; font-weight: 800; text-transform: uppercase; color: var(--text-main); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .card p.sub { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px; }
+
+        textarea, input[type="text"], input[type="number"], input[type="password"], select, input[type="color"] {
+            width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text-main); padding: 12px; font-size: 0.8rem; font-family: monospace; outline: none; margin-bottom: 12px;
+            position: relative;
+            z-index: 2;
+        }
+        input[type="color"] {
+            padding: 4px;
+            height: 45px;
+            cursor: pointer;
+        }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent-color);
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+        textarea { resize: vertical; }
+
+        .form-group { margin-bottom: 12px; text-align: left; }
+        .form-group label { display: block; font-size: 0.7rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+
+        .info-grid {
+            background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px;
+            padding: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 12px; margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+        }
+        .info-item span { display: block; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.3px; }
+        .info-item strong { font-size: 0.7rem; color: var(--text-main); font-family: monospace; word-break: break-all; }
+
+        .table-container { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--input-bg); position: relative; z-index: 2; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left; }
+        th { background: var(--bg-card); color: var(--text-muted); padding: 12px; font-size: 0.7rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text-sub); }
+        tr:hover { background: var(--table-hover); }
+
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; position: relative; z-index: 2; }
+        .metric-card { background: var(--input-bg); border: 1px solid var(--border); padding: 15px; border-radius: 14px; position: relative; z-index: 2; }
+        .metric-card span { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+        .metric-card div { font-size: 1.5rem; font-weight: 900; font-family: monospace; margin-top: 5px; }
+
+        .client-form {
+            background: var(--input-bg); border: 1px solid var(--border);
+            padding: 12px; border-radius: 12px; margin-bottom: 12px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--border); border-radius: 12px; padding: 15px; text-align: center;
+            background: var(--input-bg); cursor: pointer; margin-bottom: 12px; transition: 0.2s;
+            position: relative;
+            z-index: 2;
+        }
+        .drop-zone:hover { border-color: var(--accent-color); }
+
+        .badge-status {
+            display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase;
+        }
+        .badge-pendiente { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid #f59e0b; }
+        .badge-conciliado { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid #10b981; }
+        .badge-anulado { background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid #f43f5e; }
+
+        .hidden { display: none !important; }
+        .text-amber { color: var(--accent-color); }
+        .text-emerald { color: #10b981; }
+        .text-rose { color: #f43f5e; }
+        .text-blue { color: #3b82f6; }
+        .text-purple { color: #a855f7; }
+        .text-cyan { color: #06b6d4; }
+
+        .modal-edit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .modal-edit-grid .form-group {
+            margin-bottom: 8px;
+        }
+        .modal-edit-grid .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        .modal-edit-grid input, .modal-edit-grid select {
+            margin-bottom: 0;
+            font-size: 0.75rem;
+            padding: 8px 10px;
+        }
+        .modal-edit-grid label {
+            font-size: 0.6rem;
+        }
+
+        .bg-preview {
+            width: 100%;
+            height: 120px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background-size: cover;
+            background-position: center;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            background-color: var(--input-bg);
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .color-swatch {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+        .color-swatch:hover {
+            transform: scale(1.1);
+            border-color: var(--text-main);
+        }
+        .color-swatch.active {
+            border-color: var(--text-main);
+            box-shadow: 0 0 0 2px var(--accent-color);
+        }
+        .color-swatch.active::after {
+            content: "✓";
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 0 0 4px rgba(0,0,0,0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA LOGIN -->
+    <div id="pantallaLogin">
+        <div class="login-box" style="text-align: center;">
+            <h2 style="margin-bottom: 5px;">🛠️ Acceso Autorizado</h2>
+            <p style="color: var(--text-muted); font-size: 0.75rem; margin-bottom: 15px;">Ingrese PIN de Seguridad</p>
+            <input type="password" id="inputPin" placeholder="••••" class="pin-input" onkeyup="evaluarEnterPin(event)">
+            <button onclick="autenticar()" class="btn btn-amber">Desbloquear Terminal</button>
+            <p id="errorPin" class="text-rose hidden" style="font-size: 0.75rem; margin-top: 10px;">PIN incorrecto.</p>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMACIÓN TASA DEL DÍA -->
+    <div id="modalTasaDia" class="modal-backdrop hidden">
+        <div class="modal-content" style="text-align: center;">
+            <h2 style="font-size: 1.1rem; color: var(--accent-color); margin-bottom: 8px;">☀️ PRIMER PEDIDO DEL DÍA</h2>
+            <p style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 15px;">Por favor verifique que la tasa de cambio en Bs. esté actualizada antes de registrar las ventas de hoy.</p>
+            
+            <div class="form-group" style="background: var(--input-bg); border: 1px solid var(--border); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                <label style="font-size: 0.75rem;">Tasa Actual del Sistema (Bs per USD)</label>
+                <input type="number" id="inputTasaDiaModal" step="0.01" style="font-size: 1.5rem; text-align: center; color: #10b981; font-weight: bold; margin-top: 5px; margin-bottom: 0;">
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button onclick="confirmarTasaDiaModal()" class="btn btn-emerald">Confirmar Tasa y Registrar</button>
+                <button onclick="cerrarModalTasaDia()" class="btn btn-dark">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGREGAR REPUESTO -->
+    <div id="modalRepuesto" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h2 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">📦 Registrar Nuevo Repuesto</h2>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px;">El SKU se genera automáticamente en formato de 3 letras y 3 dígitos (ej: FIL-001).</p>
+            
+            <div class="form-group">
+                <label>Nombre del Artículo / Descripción</label>
+                <input type="text" id="modNombre" placeholder="Ej: Filtro de Aceite, Pastillas de Freno..." oninput="actualizarPreviewSKU()">
+            </div>
+
+            <div class="form-group">
+                <label>SKU Proyectado (Automático)</label>
+                <input type="text" id="modSkuPreview" readonly style="color: var(--accent-color); font-weight: bold; background: rgba(245, 158, 11, 0.05);" value="---">
+            </div>
+
+            <div class="form-group">
+                <label>Compatibilidad (Modelo de Auto)</label>
+                <select id="modCompatibilidadSelect" onchange="toggleCompatibilidadOtro()">
+                    <option value="Toyota Yaris / Corolla">Toyota Yaris / Corolla</option>
+                    <option value="Toyota Hilux / Fortuner">Toyota Hilux / Fortuner</option>
+                    <option value="Chevrolet Aveo / Optra">Chevrolet Aveo / Optra</option>
+                    <option value="Chevrolet Spark / Corsa">Chevrolet Spark / Corsa</option>
+                    <option value="Chevrolet Cruze / Orlando">Chevrolet Cruze / Orlando</option>
+                    <option value="Ford Fiesta / EcoSport">Ford Fiesta / EcoSport</option>
+                    <option value="Ford Focus / Explorer">Ford Focus / Explorer</option>
+                    <option value="Hyundai Getz / Accent">Hyundai Getz / Accent</option>
+                    <option value="Chery Arauca / Orinoco">Chery Arauca / Orinoco</option>
+                    <option value="Chery Tiggo">Chery Tiggo</option>
+                    <option value="Fiat Uno / Palio / Siena">Fiat Uno / Palio / Siena</option>
+                    <option value="Mitsubishi Lancer / Signo">Mitsubishi Lancer / Signo</option>
+                    <option value="Renault Twingo / Logan / Symbol">Renault Twingo / Logan / Symbol</option>
+                    <option value="Nissan Sentra / Tiida">Nissan Sentra / Tiida</option>
+                    <option value="Universal / Multimarca">Universal / Multimarca</option>
+                    <option value="OTRO">Otro (Ingreso Manual...)</option>
+                </select>
+                <input type="text" id="modCompatibilidadOtro" class="hidden" placeholder="Escriba el modelo o compatibilidad..." style="margin-top: 5px;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label>Precio USD ($)</label>
+                    <input type="number" id="modPrecio" placeholder="0.00" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Stock Inicial</label>
+                    <input type="number" id="modStock" placeholder="0" min="0" value="1">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button onclick="guardarRepuestoModal()" class="btn btn-emerald">Guardar Repuesto</button>
+                <button onclick="cerrarModalRepuesto()" class="btn btn-dark">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDICIÓN MANUAL DE DATOS DE PAGO -->
+    <div id="modalEditarPago" class="modal-backdrop hidden">
+        <div class="modal-content" style="max-width: 550px;">
+            <h2 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">✏️ Editar Datos del Comprobante</h2>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px;">Complete o corrija los campos extraídos del comprobante.</p>
+            
+            <div class="modal-edit-grid">
+                <div class="form-group">
+                    <label>📌 Nº Referencia</label>
+                    <input type="text" id="editRef" placeholder="Ej: 123456789">
+                </div>
+                <div class="form-group">
+                    <label>📅 Fecha</label>
+                    <input type="text" id="editFecha" placeholder="DD/MM/AAAA HH:MM">
+                </div>
+                <div class="form-group">
+                    <label>📱 Celular Origen</label>
+                    <input type="text" id="editTelOrigen" placeholder="0412-1234567">
+                </div>
+                <div class="form-group">
+                    <label>📱 Celular Destino</label>
+                    <input type="text" id="editTelDestino" placeholder="0412-7654321">
+                </div>
+                <div class="form-group">
+                    <label>🪪 Identificación Receptor</label>
+                    <input type="text" id="editCedula" placeholder="V-12345678">
+                </div>
+                <div class="form-group">
+                    <label>🏦 Banco Emisor</label>
+                    <input type="text" id="editBancoEmisor" placeholder="Banesco, Mercantil, etc.">
+                </div>
+                <div class="form-group">
+                    <label>🏦 Banco Receptor</label>
+                    <input type="text" id="editBancoReceptor" placeholder="Provincial, Venezuela, etc.">
+                </div>
+                <div class="form-group">
+                    <label>💰 Monto Operación</label>
+                    <input type="text" id="editMonto" placeholder="1.234,56">
+                </div>
+                <div class="form-group full-width">
+                    <label>📝 Concepto</label>
+                    <input type="text" id="editConcepto" placeholder="Pago de repuestos, transferencia, etc.">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button onclick="guardarEdicionManual()" class="btn btn-emerald">✅ Guardar Datos</button>
+                <button onclick="cerrarModalEditarPago()" class="btn btn-dark">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VALIDACIÓN DE REFERENCIA PARA CONCILIACIÓN -->
+    <div id="modalValidarRef" class="modal-backdrop hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2 style="font-size: 1rem; font-weight: 800; color: var(--accent-color); margin-bottom: 4px;">🔍 Validar Pago Móvil</h2>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px;">Ingrese el número de referencia del comprobante para buscar el pago y cruzarlo con el pedido.</p>
+
+            <div id="infoPedidoValidar" style="background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 15px;">
+                <!-- Se llena dinámicamente -->
+            </div>
+
+            <div class="form-group">
+                <label style="font-size: 0.7rem;">📌 Nº de Referencia del Pago</label>
+                <input type="text" id="inputRefValidar" placeholder="Ej: 123456789" style="font-size: 1rem; text-align: center; letter-spacing: 2px; font-weight: bold;" onkeyup="if(event.key === 'Enter') validarReferenciaPago()">
+            </div>
+
+            <div id="resultadoValidacion" class="hidden" style="background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 15px; font-size: 0.75rem;">
+                <!-- Se llena dinámicamente -->
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button onclick="validarReferenciaPago()" class="btn btn-emerald" style="flex: 1;">🔍 Buscar y Validar</button>
+                <button onclick="cerrarModalValidarRef()" class="btn btn-dark" style="width: auto; padding: 0 15px;">Cancelar</button>
+            </div>
+
+            <div id="panelConfirmarMatch" class="hidden" style="margin-top: 12px;">
+                <button onclick="confirmarConciliacionManual()" class="btn btn-amber">✅ Confirmar Conciliación</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ENCABEZADO -->
+    <header>
+        <div class="brand">🛠️ GRAT PARTS <span>AUTOPARTES</span></div>
+        <nav class="nav-tabs">
+            <button onclick="cambiarTab('ventas')" id="btnTab-ventas" class="tab-btn active">📲 Recepción / Venta</button>
+            <button onclick="cambiarTab('inventario')" id="btnTab-inventario" class="tab-btn">📦 Inventario</button>
+            <button onclick="cambiarTab('pedidos')" id="btnTab-pedidos" class="tab-btn">📋 Pedidos y Conciliación</button>
+            <button onclick="cambiarTab('reportes')" id="btnTab-reportes" class="tab-btn">📊 Reportes y Config</button>
+        </nav>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <div class="rate-control">
+                <span>Tasa $</span>
+                <input type="number" id="tasaCambio" value="40.00" step="0.1" onchange="actualizarTasa()">
+                <span>Bs</span>
+            </div>
+            <button onclick="toggleTema()" id="btnTema" class="btn btn-dark" style="padding: 6px 12px; width: auto;" title="Cambiar Tema">🌙 Oscuro</button>
+            <button onclick="bloquearSesion()" class="btn btn-dark" style="padding: 6px 12px; width: auto;" title="Bloquear Terminal">🔒</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- TAB 1: RECEPCIÓN -->
+        <section id="tab-ventas" class="grid-2">
+            <div class="card">
+                <h2><span>1️⃣</span> Carga de Pedido (WhatsApp / Manual)</h2>
+                <p class="sub">Ingrese los datos del cliente y seleccione los repuestos.</p>
+
+                <div class="client-form">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.7rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase;">👤 Cliente</span>
+                        <label style="font-size: 0.7rem; color: var(--text-sub); cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                            <input type="checkbox" id="chkDatosCompletos" onchange="toggleFormCliente()">
+                            ¿Registrar Nombre y Cédula?
+                        </label>
+                    </div>
+
+                    <input type="text" id="cliTelefono" placeholder="Número Telefónico (Ej: 04121234567)" style="margin-bottom: 8px;">
+                    
+                    <div id="camposCompletosCliente" class="hidden">
+                        <input type="text" id="cliNombre" placeholder="Nombre y Apellido" style="margin-bottom: 8px;">
+                        <input type="text" id="cliCedula" placeholder="Cédula / RIF (Ej: V-18234567)" style="margin-bottom: 0;">
+                    </div>
+                </div>
+
+                <div style="background: var(--input-bg); border: 1px solid var(--border); padding: 10px; border-radius: 12px; margin-bottom: 12px;">
+                    <span style="font-size: 0.7rem; font-weight: bold; color: var(--accent-color); text-transform: uppercase; display: block; margin-bottom: 6px;">🛒 Selector Manual de Repuestos</span>
+                    <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+                        <select id="selRepuestoManual" style="margin-bottom:0; flex:1;"></select>
+                        <input type="number" id="cantRepuestoManual" value="1" min="1" style="width: 60px; margin-bottom:0; text-align:center;">
+                        <button onclick="agregarRepuestoManual()" class="btn btn-amber" style="width:auto; padding:0 12px;">+ Agregar</button>
+                    </div>
+                </div>
+
+                <textarea id="txtWhatsapp" rows="5" placeholder="Texto de la orden...&#10;Ejemplo:&#10;1x Filtro de Aceite (FIL-001) - $8.00&#10;2x Pastillas de Freno (PAS-001) - $25.00"></textarea>
+                <button onclick="procesarOrdenWA()" class="btn btn-blue">Registrar Pedido (Pendiente)</button>
+            </div>
+
+            <!-- LECTURA DE COMPROBANTE PAGO MÓVIL -->
+            <div class="card">
+                <h2><span>2️⃣</span> Captura de Pago Móvil</h2>
+                <p class="sub">Pega el texto del comprobante o suba la captura de pantalla.</p>
+
+                <div class="drop-zone" onclick="document.getElementById('filePago').click()">
+                    <span style="font-size: 0.8rem; color: var(--text-sub);" id="lblFile">📁 Haz clic o arrastra la captura/imagen aquí</span>
+                    <input type="file" id="filePago" accept="image/*" onchange="procesarImagenPago(this.files[0])" class="hidden">
+                </div>
+
+                <textarea id="txtPagoMovil" rows="3" placeholder="O pegue el comprobante en texto aquí..."></textarea>
+                
+                <div class="info-grid">
+                    <div class="info-item"><span>📌 Nº REFERENCIA</span><strong id="pmRef" class="text-emerald">-</strong></div>
+                    <div class="info-item"><span>📅 FECHA</span><strong id="pmFecha" class="text-blue">-</strong></div>
+                    <div class="info-item"><span>📱 CELULAR ORIGEN</span><strong id="pmTelefonoOrigen" class="text-cyan">-</strong></div>
+                    <div class="info-item"><span>📱 CELULAR DESTINO</span><strong id="pmTelefonoDestino" class="text-purple">-</strong></div>
+                    <div class="info-item"><span>🪪 IDENT. RECEPTOR</span><strong id="pmCedula" class="text-amber">-</strong></div>
+                    <div class="info-item"><span>🏦 BANCO EMISOR</span><strong id="pmBancoEmisor" class="text-rose">-</strong></div>
+                    <div class="info-item"><span>🏦 BANCO RECEPTOR</span><strong id="pmBancoReceptor" class="text-blue">-</strong></div>
+                    <div class="info-item"><span>💰 MONTO OPERACIÓN</span><strong id="pmMonto" class="text-emerald">-</strong></div>
+                    <div class="info-item"><span>📝 CONCEPTO</span><strong id="pmConcepto" class="text-sub">-</strong></div>
+                </div>
+
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="parsearPagoMovil()" class="btn btn-emerald" style="flex:1;">🔍 Extraer Datos</button>
+                    <button onclick="abrirModalEditarPago()" class="btn btn-purple" style="flex:1;">✏️ Editar Manual</button>
+                    <button onclick="limpiarDatosPago()" class="btn btn-dark" style="width: auto; padding: 0 15px;">🧹</button>
+                </div>
+                <div style="margin-top: 8px; text-align: center; font-size: 0.65rem; color: var(--text-muted);">
+                    💡 Si los datos no se extrajeron correctamente, use el botón "Editar Manual"
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: INVENTARIO -->
+        <section id="tab-inventario" class="hidden">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap:10px;">
+                    <div>
+                        <h2>📦 Inventario y Compatividades</h2>
+                        <p class="sub" style="margin:0;">Control de existencias y catálogo técnico.</p>
+                    </div>
+                    <button onclick="abrirModalNuevoRepuesto()" class="btn btn-amber" style="width: auto; padding: 8px 16px;">+ Nuevo Repuesto</button>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <input type="text" id="busquedaInventario" oninput="renderizarInventario()" placeholder="🔍 Buscar por SKU, Descripción o Vehículo..." style="margin-bottom:0; flex: 1; min-width: 200px;">
+                    <select id="filtroStock" onchange="renderizarInventario()" style="margin-bottom:0; width: auto;">
+                        <option value="todos">Todos los Estados</option>
+                        <option value="critico">Stock Crítico (< 3)</option>
+                        <option value="agotado">Sin Stock (0)</option>
+                    </select>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>Descripción</th>
+                                <th>Compatibilidad</th>
+                                <th style="text-align: right;">Precio ($)</th>
+                                <th style="text-align: center;">Stock</th>
+                                <th style="text-align: center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaInventario"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: PEDIDOS Y CONCILIACIÓN -->
+        <section id="tab-pedidos" class="hidden">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap:10px;">
+                    <div>
+                        <h2>📋 Pedidos y Conciliación de Pagos</h2>
+                        <p class="sub" id="infoFiltroPedidos" style="margin:0;">Cruce de montos y descarga de tickets PDF.</p>
+                    </div>
+                    <button onclick="vaciarHistorialPedidos()" class="btn btn-rose" style="width: auto; padding: 6px 12px; font-size:0.75rem;">🗑️ Vaciar Historial</button>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="busquedaPedido" oninput="filtrarPedidosDebounce()" placeholder="🔍 Buscar por Correlativo, Cédula, Ref o Fecha..." style="margin-bottom:0;">
+                    <button onclick="limpiarBusquedaPedido()" class="btn btn-dark" style="width: auto; padding: 0 15px;">Limpiar</button>
+                </div>
+
+                <div id="listaPedidos" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </div>
+        </section>
+
+        <!-- TAB 4: REPORTES Y CONFIGURACIÓN -->
+        <section id="tab-reportes" class="hidden">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap:10px;">
+                    <div>
+                        <h2>📊 Reportes Operativos y Financieros</h2>
+                        <p class="sub" style="margin:0;">Filtra períodos y exporta reportes estilizados.</p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button onclick="exportarExcelEstilizado()" class="btn btn-emerald" style="width: auto; padding: 8px 14px;">📊 Excel Diseñado con Logo (.XLSX)</button>
+                        <button onclick="exportarCSV()" class="btn btn-dark" style="width: auto; padding: 8px 14px;">📄 Plano (.CSV)</button>
+                    </div>
+                </div>
+
+                <div style="background: var(--input-bg); border: 1px solid var(--border); padding: 15px; border-radius: 14px; margin-bottom: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end;">
+                    <div>
+                        <label style="font-size: 0.7rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Período de Análisis</label>
+                        <select id="selPeriodoReporte" onchange="evaluarFiltrosPeriodo()" style="margin-bottom:0;">
+                            <option value="diario">Diario (Hoy)</option>
+                            <option value="mensual">Mensual</option>
+                            <option value="trimestral">Trimestral</option>
+                            <option value="semestral">Semestral</option>
+                            <option value="anual">Anual</option>
+                            <option value="historico">Histórico Completo</option>
+                        </select>
+                    </div>
+
+                    <div id="boxFiltroAno">
+                        <label style="font-size: 0.7rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Año</label>
+                        <select id="selAnoReporte" onchange="calcularReportes()" style="margin-bottom:0;"></select>
+                    </div>
+
+                    <div id="boxFiltroMes" class="hidden">
+                        <label style="font-size: 0.7rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Mes</label>
+                        <select id="selMesReporte" onchange="calcularReportes()" style="margin-bottom:0;">
+                            <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
+                            <option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option>
+                            <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
+                            <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option>
+                        </select>
+                    </div>
+
+                    <div id="boxFiltroSubPeriodo" class="hidden">
+                        <label id="lblSubPeriodo" style="font-size: 0.7rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Sub-Periodo</label>
+                        <select id="selSubPeriodoReporte" onchange="calcularReportes()" style="margin-bottom:0;"></select>
+                    </div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card"><span>Total Conciliado (USD)</span><div id="metricTotalUsd" class="text-amber">$0.00</div></div>
+                    <div class="metric-card"><span>Total Conciliado (Bs)</span><div id="metricTotalBs" class="text-emerald">0.00 Bs</div></div>
+                    <div class="metric-card"><span>Pedidos Conciliados</span><div id="metricCantPedidos">0</div></div>
+                    <div class="metric-card"><span>Repuestos Vendidos</span><div id="metricCantRepuestos" class="text-blue">0</div></div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h2>⚙️ Configuración y Respaldos del Sistema</h2>
+                <p class="sub">Administre las credenciales, personalice la apariencia y asegure sus datos.</p>
+                <div class="grid-2">
+                    <div style="background: var(--input-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+                        <label style="font-size: 0.75rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase;">🔒 Actualizar PIN de Seguridad</label>
+                        <div style="display: flex; gap: 10px; margin-top: 8px;">
+                            <input type="password" id="inputNuevoPin" placeholder="Nuevo PIN" maxlength="10" style="margin-bottom: 0;">
+                            <button onclick="guardarNuevoPin()" class="btn btn-amber" style="width: auto;">Actualizar</button>
+                        </div>
+                    </div>
+                    <div style="background: var(--input-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+                        <label style="font-size: 0.75rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase;">💾 Copia de Seguridad Inmediata</label>
+                        <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap;">
+                            <button onclick="exportarRespaldoJSON()" class="btn btn-emerald" style="width: auto; flex: 1;">⬇️ Exportar (.json)</button>
+                            <button onclick="document.getElementById('fileImport').click()" class="btn btn-dark" style="width: auto; flex: 1;">⬆️ Importar</button>
+                            <input type="file" id="fileImport" accept=".json" class="hidden" onchange="importarRespaldoJSON(event)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h2>🎨 Personalización Visual</h2>
+                <p class="sub">Personalice el fondo corporativo y la paleta de colores del sistema.</p>
+                
+                <div class="grid-2">
+                    <div style="background: var(--input-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+                        <label style="font-size: 0.75rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">🖼️ Imagen de Fondo Corporativo</label>
+                        
+                        <div id="bgPreviewBox" class="bg-preview">
+                            <span id="bgPreviewText">Sin imagen de fondo</span>
+                        </div>
+                        
+                        <input type="file" id="inputBgImage" accept="image/*" class="hidden" onchange="cargarImagenFondo(event)">
+                        
+                        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                            <button onclick="document.getElementById('inputBgImage').click()" class="btn btn-amber" style="width: auto; flex: 1;">📁 Seleccionar</button>
+                            <button onclick="eliminarImagenFondo()" class="btn btn-dark" style="width: auto; flex: 1;">🗑️ Quitar</button>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.65rem;">Opacidad del Fondo: <span id="lblBgOpacity">15%</span></label>
+                            <input type="range" id="sliderBgOpacity" min="0" max="100" value="15" oninput="ajustarOpacidadFondo(this.value)">
+                        </div>
+                    </div>
+
+                    <div style="background: var(--input-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+                        <label style="font-size: 0.75rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">🎨 Color Principal del Sistema</label>
+                        
+                        <div class="color-palette" id="paletaColores">
+                            <div class="color-swatch" data-color="#f59e0b" data-hover="#d97706" data-contrast="#020617" style="background:#f59e0b;" title="Ámbar"></div>
+                            <div class="color-swatch" data-color="#ef4444" data-hover="#dc2626" data-contrast="#ffffff" style="background:#ef4444;" title="Rojo"></div>
+                            <div class="color-swatch" data-color="#10b981" data-hover="#059669" data-contrast="#ffffff" style="background:#10b981;" title="Esmeralda"></div>
+                            <div class="color-swatch" data-color="#3b82f6" data-hover="#2563eb" data-contrast="#ffffff" style="background:#3b82f6;" title="Azul"></div>
+                            <div class="color-swatch" data-color="#8b5cf6" data-hover="#7c3aed" data-contrast="#ffffff" style="background:#8b5cf6;" title="Violeta"></div>
+                            <div class="color-swatch" data-color="#ec4899" data-hover="#db2777" data-contrast="#ffffff" style="background:#ec4899;" title="Rosa"></div>
+                            <div class="color-swatch" data-color="#06b6d4" data-hover="#0891b2" data-contrast="#ffffff" style="background:#06b6d4;" title="Cian"></div>
+                            <div class="color-swatch" data-color="#f97316" data-hover="#ea580c" data-contrast="#ffffff" style="background:#f97316;" title="Naranja"></div>
+                            <div class="color-swatch" data-color="#84cc16" data-hover="#65a30d" data-contrast="#020617" style="background:#84cc16;" title="Lima"></div>
+                            <div class="color-swatch" data-color="#14b8a6" data-hover="#0d9488" data-contrast="#ffffff" style="background:#14b8a6;" title="Teal"></div>
+                            <div class="color-swatch" data-color="#a855f7" data-hover="#9333ea" data-contrast="#ffffff" style="background:#a855f7;" title="Púrpura"></div>
+                            <div class="color-swatch" data-color="#0ea5e9" data-hover="#0284c7" data-contrast="#ffffff" style="background:#0ea5e9;" title="Sky"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="font-size: 0.65rem;">O seleccione un color personalizado:</label>
+                            <input type="color" id="inputColorPersonalizado" value="#f59e0b" onchange="aplicarColorPersonalizado(this.value)">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <button onclick="restaurarPersonalizacionPredeterminada()" class="btn btn-dark" style="width: auto; padding: 8px 16px;">🔄 Restaurar Valores Predeterminados</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // ================================================================
+        // VARIABLES GLOBALES Y CONFIGURACIÓN
+        // ================================================================
+        let PIN_ACCESO = localStorage.getItem('ar_pin') || "1234";
+        const TIEMPO_INACTIVIDAD = 5 * 60 * 1000;
+        let timerInactividad = null;
+        let timeoutDebounceBusqueda = null;
+
+        let tasa = parseFloat(localStorage.getItem('ar_tasa')) || 40.00;
+        let inventario = JSON.parse(localStorage.getItem('ar_inventario')) || [
+            { sku: "FIL-001", descripcion: "Filtro de Aceite", compatibilidad: "Toyota Yaris / Corolla", precio: 8.00, stock: 15 },
+            { sku: "PAS-001", descripcion: "Pastillas de Freno Delanteras", compatibilidad: "Chevrolet Aveo / Optra", precio: 25.00, stock: 10 }
+        ];
+        let pedidos = JSON.parse(localStorage.getItem('ar_pedidos')) || [];
+        let ultimoPagoParsed = null;
+
+        // Configuración de personalización visual
+        let bgImageData = localStorage.getItem('ar_bg_image') || null;
+        let bgImageOpacity = parseFloat(localStorage.getItem('ar_bg_opacity')) || 0.15;
+        let accentColor = localStorage.getItem('ar_accent_color') || '#f59e0b';
+        let accentColorHover = localStorage.getItem('ar_accent_hover') || '#d97706';
+        let accentContrast = localStorage.getItem('ar_accent_contrast') || '#020617';
+
+        // Variables para validación de referencia
+        let pedidoEnValidacion = null;
+        let pagoEncontrado = null;
+
+        // ================================================================
+        // PERSONALIZACIÓN VISUAL
+        // ================================================================
+        function aplicarPersonalizacion() {
+            const root = document.documentElement;
+
+            root.style.setProperty('--accent-color', accentColor);
+            root.style.setProperty('--accent-color-hover', accentColorHover);
+            root.style.setProperty('--accent-contrast', accentContrast);
+
+            if (bgImageData) {
+                document.body.classList.add('has-bg-image');
+                root.style.setProperty('--bg-image-url', `url(${bgImageData})`);
+                root.style.setProperty('--bg-image-opacity', bgImageOpacity);
+                
+                const preview = document.getElementById('bgPreviewBox');
+                if (preview) {
+                    preview.style.backgroundImage = `url(${bgImageData})`;
+                    document.getElementById('bgPreviewText').style.display = 'none';
+                }
+            } else {
+                document.body.classList.remove('has-bg-image');
+                root.style.setProperty('--bg-image-url', 'none');
+                
+                const preview = document.getElementById('bgPreviewBox');
+                if (preview) {
+                    preview.style.backgroundImage = 'none';
+                    document.getElementById('bgPreviewText').style.display = 'block';
+                }
+            }
+        }
+
+        function cargarImagenFondo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 2 * 1024 * 1024) {
+                alert("⚠️ La imagen es demasiado grande. El tamaño máximo permitido es 2MB.");
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                bgImageData = e.target.result;
+                try {
+                    localStorage.setItem('ar_bg_image', bgImageData);
+                    aplicarPersonalizacion();
+                    alert("✅ Imagen de fondo cargada exitosamente.");
+                } catch (error) {
+                    alert("⚠️ La imagen es muy grande para guardar en el navegador. Intente con una más pequeña.");
+                    bgImageData = null;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function eliminarImagenFondo() {
+            if (!bgImageData) {
+                alert("No hay imagen de fondo cargada actualmente.");
+                return;
+            }
+            if (confirm("¿Desea eliminar la imagen de fondo corporativo?")) {
+                bgImageData = null;
+                localStorage.removeItem('ar_bg_image');
+                aplicarPersonalizacion();
+                document.getElementById('inputBgImage').value = '';
+                alert("✅ Imagen de fondo eliminada.");
+            }
+        }
+
+        function ajustarOpacidadFondo(valor) {
+            bgImageOpacity = parseInt(valor) / 100;
+            localStorage.setItem('ar_bg_opacity', bgImageOpacity);
+            document.getElementById('lblBgOpacity').innerText = `${valor}%`;
+            document.documentElement.style.setProperty('--bg-image-opacity', bgImageOpacity);
+        }
+
+        function seleccionarColorPaleta(swatch) {
+            const color = swatch.dataset.color;
+            const hover = swatch.dataset.hover;
+            const contrast = swatch.dataset.contrast;
+            
+            accentColor = color;
+            accentColorHover = hover;
+            accentContrast = contrast;
+
+            localStorage.setItem('ar_accent_color', accentColor);
+            localStorage.setItem('ar_accent_hover', accentColorHover);
+            localStorage.setItem('ar_accent_contrast', accentContrast);
+
+            document.getElementById('inputColorPersonalizado').value = color;
+
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            swatch.classList.add('active');
+
+            aplicarPersonalizacion();
+        }
+
+        function aplicarColorPersonalizado(color) {
+            accentColor = color;
+            accentColorHover = ajustarBrillo(color, -20);
+            accentContrast = obtenerContrasteOptimo(color);
+
+            localStorage.setItem('ar_accent_color', accentColor);
+            localStorage.setItem('ar_accent_hover', accentColorHover);
+            localStorage.setItem('ar_accent_contrast', accentContrast);
+
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+
+            aplicarPersonalizacion();
+        }
+
+        function ajustarBrillo(hex, porcentaje) {
+            let r = parseInt(hex.substring(1, 3), 16);
+            let g = parseInt(hex.substring(3, 5), 16);
+            let b = parseInt(hex.substring(5, 7), 16);
+
+            r = Math.max(0, Math.min(255, r + porcentaje));
+            g = Math.max(0, Math.min(255, g + porcentaje));
+            b = Math.max(0, Math.min(255, b + porcentaje));
+
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        function obtenerContrasteOptimo(hex) {
+            const r = parseInt(hex.substring(1, 3), 16);
+            const g = parseInt(hex.substring(3, 5), 16);
+            const b = parseInt(hex.substring(5, 7), 16);
+            const luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            return luminancia > 0.5 ? '#020617' : '#ffffff';
+        }
+
+        function restaurarPersonalizacionPredeterminada() {
+            if (!confirm("¿Desea restaurar todos los valores visuales predeterminados?")) return;
+
+            bgImageData = null;
+            bgImageOpacity = 0.15;
+            accentColor = '#f59e0b';
+            accentColorHover = '#d97706';
+            accentContrast = '#020617';
+
+            localStorage.removeItem('ar_bg_image');
+            localStorage.removeItem('ar_bg_opacity');
+            localStorage.removeItem('ar_accent_color');
+            localStorage.removeItem('ar_accent_hover');
+            localStorage.removeItem('ar_accent_contrast');
+
+            document.getElementById('sliderBgOpacity').value = 15;
+            document.getElementById('lblBgOpacity').innerText = '15%';
+            document.getElementById('inputColorPersonalizado').value = '#f59e0b';
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+
+            aplicarPersonalizacion();
+            alert("✅ Personalización restaurada a valores predeterminados.");
+        }
+
+        // ================================================================
+        // FUNCIONES DE TEMA Y LOGIN
+        // ================================================================
+        function aplicarTema(tema) {
+            if (tema === 'light') {
+                document.body.classList.add('light-mode');
+                document.getElementById('btnTema').innerText = '☀️ Claro';
+            } else {
+                document.body.classList.remove('light-mode');
+                document.getElementById('btnTema').innerText = '🌙 Oscuro';
+            }
+            localStorage.setItem('ar_theme', tema);
+        }
+
+        function toggleTema() {
+            const actual = localStorage.getItem('ar_theme') || 'dark';
+            aplicarTema(actual === 'dark' ? 'light' : 'dark');
+        }
+
+        aplicarTema(localStorage.getItem('ar_theme') || 'dark');
+        aplicarPersonalizacion();
+
+        function iniciarTemporizadorInactividad() {
+            clearTimeout(timerInactividad);
+            timerInactividad = setTimeout(bloquearSesion, TIEMPO_INACTIVIDAD);
+        }
+        ['mousemove', 'keydown', 'click'].forEach(e => window.addEventListener(e, iniciarTemporizadorInactividad));
+
+        function autenticar() {
+            if (document.getElementById('inputPin').value === PIN_ACCESO) {
+                document.getElementById('pantallaLogin').classList.add('hidden');
+                document.getElementById('inputPin').value = '';
+                document.getElementById('errorPin').classList.add('hidden');
+                iniciarTemporizadorInactividad();
+            } else {
+                document.getElementById('errorPin').classList.remove('hidden');
+            }
+        }
+
+        function evaluarEnterPin(event) {
+            if (event.key === 'Enter') {
+                autenticar();
+            }
+        }
+
+        function guardarNuevoPin() {
+            const n = document.getElementById('inputNuevoPin').value.trim();
+            if (n.length < 4) return alert("El PIN debe tener al menos 4 caracteres de seguridad.");
+            PIN_ACCESO = n;
+            localStorage.setItem('ar_pin', PIN_ACCESO);
+            document.getElementById('inputNuevoPin').value = '';
+            alert("✅ PIN actualizado exitosamente. Utilice esta nueva clave la próxima vez que el sistema se bloquee.");
+        }
+
+        function bloquearSesion() {
+            document.getElementById('pantallaLogin').classList.remove('hidden');
+        }
+
+        function toggleFormCliente() {
+            const chk = document.getElementById('chkDatosCompletos').checked;
+            const cajaCompleta = document.getElementById('camposCompletosCliente');
+            if (chk) {
+                cajaCompleta.classList.remove('hidden');
+            } else {
+                cajaCompleta.classList.add('hidden');
+            }
+        }
+
+        function cargarSelectorManual() {
+            const sel = document.getElementById('selRepuestoManual');
+            sel.innerHTML = inventario.map(p => `<option value="${p.sku}">${p.descripcion} (${p.sku}) - $${p.precio.toFixed(2)} [Stock: ${p.stock}]</option>`).join('');
+        }
+
+        function agregarRepuestoManual() {
+            const sku = document.getElementById('selRepuestoManual').value;
+            const cant = parseInt(document.getElementById('cantRepuestoManual').value) || 1;
+            const item = inventario.find(i => i.sku === sku);
+            
+            if (!item) return;
+
+            const txtArea = document.getElementById('txtWhatsapp');
+            const nuevaLinea = `${cant}x ${item.descripcion} (${item.sku}) - $${item.precio.toFixed(2)}`;
+            txtArea.value = txtArea.value ? txtArea.value + '\n' + nuevaLinea : nuevaLinea;
+        }
+
+        function cambiarTab(tab) {
+            ['ventas', 'inventario', 'pedidos', 'reportes'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btnTab-${t}`).classList.remove('active');
+            });
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.getElementById(`btnTab-${tab}`).classList.add('active');
+
+            if (tab === 'ventas') cargarSelectorManual();
+            if (tab === 'inventario') renderizarInventario();
+            if (tab === 'pedidos') renderizarPedidos();
+            if (tab === 'reportes') {
+                inicializarFiltrosAnos();
+                evaluarFiltrosPeriodo();
+                actualizarUIConfiguracion();
+            }
+        }
+
+        function actualizarUIConfiguracion() {
+            if (bgImageData) {
+                const preview = document.getElementById('bgPreviewBox');
+                preview.style.backgroundImage = `url(${bgImageData})`;
+                document.getElementById('bgPreviewText').style.display = 'none';
+            } else {
+                const preview = document.getElementById('bgPreviewBox');
+                preview.style.backgroundImage = 'none';
+                document.getElementById('bgPreviewText').style.display = 'block';
+            }
+
+            document.getElementById('sliderBgOpacity').value = Math.round(bgImageOpacity * 100);
+            document.getElementById('lblBgOpacity').innerText = `${Math.round(bgImageOpacity * 100)}%`;
+
+            document.getElementById('inputColorPersonalizado').value = accentColor;
+
+            document.querySelectorAll('.color-swatch').forEach(s => {
+                s.classList.remove('active');
+                if (s.dataset.color === accentColor) {
+                    s.classList.add('active');
+                }
+            });
+        }
+
+        function actualizarTasa() {
+            tasa = parseFloat(document.getElementById('tasaCambio').value) || 40.00;
+            localStorage.setItem('ar_tasa', tasa);
+        }
+        document.getElementById('tasaCambio').value = tasa;
+
+        function calcularSKUAutomatico(nombre) {
+            if (!nombre || nombre.trim().length === 0) return "---";
+            const limpio = nombre.replace(/[^a-zA-Z]/g, '').toUpperCase();
+            const prefijo = (limpio.length >= 3) ? limpio.substring(0, 3) : (limpio + "XXX").substring(0, 3);
+            const existentes = inventario.filter(p => p.sku && p.sku.startsWith(prefijo + "-"));
+            const siguienteNum = existentes.length + 1;
+            return `${prefijo}-${String(siguienteNum).padStart(3, '0')}`;
+        }
+
+        function actualizarPreviewSKU() {
+            const nombre = document.getElementById('modNombre').value;
+            document.getElementById('modSkuPreview').value = calcularSKUAutomatico(nombre);
+        }
+
+        function toggleCompatibilidadOtro() {
+            const sel = document.getElementById('modCompatibilidadSelect').value;
+            const inpOtro = document.getElementById('modCompatibilidadOtro');
+            if (sel === 'OTRO') {
+                inpOtro.classList.remove('hidden');
+            } else {
+                inpOtro.classList.add('hidden');
+            }
+        }
+
+        function abrirModalNuevoRepuesto() {
+            document.getElementById('modNombre').value = '';
+            document.getElementById('modSkuPreview').value = '---';
+            document.getElementById('modCompatibilidadSelect').value = 'Toyota Yaris / Corolla';
+            document.getElementById('modCompatibilidadOtro').value = '';
+            document.getElementById('modCompatibilidadOtro').classList.add('hidden');
+            document.getElementById('modPrecio').value = '';
+            document.getElementById('modStock').value = '1';
+            document.getElementById('modalRepuesto').classList.remove('hidden');
+        }
+
+        function cerrarModalRepuesto() {
+            document.getElementById('modalRepuesto').classList.add('hidden');
+        }
+
+        function guardarRepuestoModal() {
+            const nombre = document.getElementById('modNombre').value.trim();
+            if (!nombre) return alert("Por favor ingresa el nombre o descripción del artículo.");
+
+            const selComp = document.getElementById('modCompatibilidadSelect').value;
+            const inpOtro = document.getElementById('modCompatibilidadOtro').value.trim();
+            const compatibilidad = (selComp === 'OTRO') ? (inpOtro || 'Universal / Multimarca') : selComp;
+
+            const precio = parseFloat(document.getElementById('modPrecio').value);
+            const stock = parseInt(document.getElementById('modStock').value);
+
+            if (isNaN(precio) || precio < 0) return alert("Ingresa un precio válido.");
+            if (isNaN(stock) || stock < 0) return alert("Ingresa una cantidad de stock válida.");
+
+            const skuGenerado = calcularSKUAutomatico(nombre);
+
+            inventario.push({
+                sku: skuGenerado,
+                descripcion: nombre,
+                compatibilidad: compatibilidad,
+                precio: precio,
+                stock: stock
+            });
+
+            localStorage.setItem('ar_inventario', JSON.stringify(inventario));
+            cerrarModalRepuesto();
+            renderizarInventario();
+            cargarSelectorManual();
+        }
+
+        function abrirModalEditarPago() {
+            document.getElementById('editRef').value = ultimoPagoParsed?.referencia || '';
+            document.getElementById('editFecha').value = ultimoPagoParsed?.fecha || '';
+            document.getElementById('editTelOrigen').value = ultimoPagoParsed?.telefonoOrigen || '';
+            document.getElementById('editTelDestino').value = ultimoPagoParsed?.telefonoDestino || '';
+            document.getElementById('editCedula').value = ultimoPagoParsed?.cedula || '';
+            document.getElementById('editBancoEmisor').value = ultimoPagoParsed?.bancoEmisor || '';
+            document.getElementById('editBancoReceptor').value = ultimoPagoParsed?.bancoReceptor || '';
+            document.getElementById('editMonto').value = ultimoPagoParsed?.montoBsStr?.replace(' Bs', '') || '';
+            document.getElementById('editConcepto').value = ultimoPagoParsed?.concepto || '';
+
+            document.getElementById('modalEditarPago').classList.remove('hidden');
+        }
+
+        function cerrarModalEditarPago() {
+            document.getElementById('modalEditarPago').classList.add('hidden');
+        }
+
+        function guardarEdicionManual() {
+            const ref = document.getElementById('editRef').value.trim();
+            const fecha = document.getElementById('editFecha').value.trim();
+            const telOrigen = document.getElementById('editTelOrigen').value.trim();
+            const telDestino = document.getElementById('editTelDestino').value.trim();
+            const cedula = document.getElementById('editCedula').value.trim();
+            const bancoEmisor = document.getElementById('editBancoEmisor').value.trim();
+            const bancoReceptor = document.getElementById('editBancoReceptor').value.trim();
+            const montoStr = document.getElementById('editMonto').value.trim();
+            const concepto = document.getElementById('editConcepto').value.trim();
+
+            let montoNumerico = 0;
+            if (montoStr) {
+                const montoLimpio = normalizarMonto(montoStr);
+                montoNumerico = parseFloat(montoLimpio) || 0;
+            }
+
+            ultimoPagoParsed = {
+                referencia: ref || 'N/A',
+                fecha: fecha || 'N/A',
+                telefonoOrigen: telOrigen || 'N/A',
+                telefonoDestino: telDestino || 'N/A',
+                cedula: cedula || 'N/A',
+                bancoEmisor: bancoEmisor || 'Desconocido',
+                bancoReceptor: bancoReceptor || 'Desconocido',
+                montoBsNum: montoNumerico,
+                montoBsStr: montoNumerico > 0 ? `${montoNumerico.toFixed(2)} Bs` : '0.00 Bs',
+                concepto: concepto || 'N/A'
+            };
+
+            document.getElementById('pmRef').innerText = ultimoPagoParsed.referencia;
+            document.getElementById('pmFecha').innerText = ultimoPagoParsed.fecha;
+            document.getElementById('pmTelefonoOrigen').innerText = ultimoPagoParsed.telefonoOrigen;
+            document.getElementById('pmTelefonoDestino').innerText = ultimoPagoParsed.telefonoDestino;
+            document.getElementById('pmCedula').innerText = ultimoPagoParsed.cedula;
+            document.getElementById('pmBancoEmisor').innerText = ultimoPagoParsed.bancoEmisor;
+            document.getElementById('pmBancoReceptor').innerText = ultimoPagoParsed.bancoReceptor;
+            document.getElementById('pmMonto').innerText = ultimoPagoParsed.montoBsStr;
+            document.getElementById('pmConcepto').innerText = ultimoPagoParsed.concepto;
+
+            cerrarModalEditarPago();
+            alert("✅ Datos del comprobante actualizados manualmente.");
+        }
+
+        async function procesarImagenPago(file) {
+            if (!file) return;
+            const lbl = document.getElementById('lblFile');
+            lbl.innerText = "⏳ Procesando captura con OCR...";
+
+            try {
+                const worker = await Tesseract.createWorker('spa');
+                const result = await worker.recognize(file);
+                await worker.terminate();
+                
+                document.getElementById('txtPagoMovil').value = result.data.text;
+                parsearPagoMovil();
+                lbl.innerText = "✅ Imagen leída correctamente";
+            } catch (err) {
+                console.error(err);
+                alert("Error al analizar la imagen. Prueba pegando el texto directamente.");
+                lbl.innerText = "📁 Haz clic o arrastra la captura/imagen aquí";
+            }
+        }
+
+        function parsearPagoMovil() {
+            let txtRaw = document.getElementById('txtPagoMovil').value;
+            if (!txtRaw) return alert("Pega el texto o suba una captura válida.");
+
+            let txt = txtRaw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+            let matchRef = null;
+            matchRef = txt.match(/(?:referencia|ref|num(?:ero)?|nro|op(?:eracion)?|comp(?:robante)?|id|transaccion|folio)[\s:#.-]*([a-z0-9]{6,20})/i);
+            
+            if (!matchRef) {
+                const numeros = txt.match(/\b\d{6,12}\b/g);
+                if (numeros) {
+                    const refCandidatos = numeros.filter(n => !n.startsWith('04') && !n.startsWith('58'));
+                    if (refCandidatos.length > 0) {
+                        matchRef = [null, refCandidatos[0]];
+                    }
+                }
+            }
+            
+            if (!matchRef) {
+                matchRef = txt.match(/\b([a-z0-9]{2,4}[-]\d{4,10})\b/i);
+            }
+
+            let referencia = "N/A";
+            if (matchRef) {
+                let refVal = matchRef[1] || matchRef[0];
+                const refExclude = ['exitosa', 'realizada', 'aprobada', 'confirmada', 'satisfactoria', 
+                                   'transaccion', 'operacion', 'compra', 'venta', 'pago', 'deposito', 
+                                   'transferencia', 'abono', 'enviado', 'recibido', 'comprobante', 
+                                   'detalle', 'concepto', 'movil', 'banco', 'fecha', 'monto', 'total', 
+                                   'nro', 'telefono', 'celular', 'origen', 'destino', 'receptor', 'emisor'];
+                const refLower = refVal.toLowerCase();
+                if (!refExclude.some(word => refLower.includes(word))) {
+                    referencia = refVal.toUpperCase();
+                }
+            }
+
+            const matchFecha = txt.match(/(\d{2}\/\d{2}\/\d{4}(?:\s+\d{2}:\d{2}(?::\d{2})?(?:\s*[ap]m)?)?)/i);
+
+            let matchTelOrigen = txt.match(/(?:origen|emisor|celular|telefono|tlf|movil|remitente|envia|de)\s*[:#]?\s*(04\d{2}[-\s]?\d{7})/i);
+            if (!matchTelOrigen) {
+                matchTelOrigen = txt.match(/(04\d{2}[-\s]?\d{7})\s*(?:origen|emisor|envia|de)/i);
+            }
+
+            let matchTelDestino = txt.match(/(?:destino|receptor|beneficiario|para|recibe|a)\s*[:#]?\s*(04\d{2}[-\s]?\d{7})/i);
+            if (!matchTelDestino) {
+                matchTelDestino = txt.match(/(04\d{2}[-\s]?\d{7})\s*(?:destino|receptor|beneficiario|para|recibe)/i);
+            }
+
+            const matchCedula = txt.match(/(?:identificacion|receptor|cedula|ci|rif|ced|id)\s*[:#]?\s*([vejg][-\s]?\d{6,9})/i);
+
+            let matchBancoEmisor = txt.match(/(?:emisor|origen|banco\s+origen|banco\s+emisor)\s*[:#]?\s*(banesco|provincial|mercantil|venezuela|bdv|venezolano\s+de\s+credito|bancamiga|banplus|bnc|binance|zinli|wafull|paypal|mercadopago|zelle|bancaribe|banco\s+del\s+tesoro|banex|bicentenario|banco\s+activo|100%banco|banfanb|bancrecer|banco\s+caroni|banco\s+exterior|banco\s+industrial|banco\s+plaza|banco\s+nacional\s+de\s+credito|bnc)/i);
+            
+            if (!matchBancoEmisor) {
+                matchBancoEmisor = txt.match(/(banesco|provincial|mercantil|venezuela|bdv|bancamiga|banplus|bnc)\s*(?:emisor|origen)/i);
+            }
+
+            let matchBancoReceptor = txt.match(/(?:receptor|destino|banco\s+destino|banco\s+receptor)\s*[:#]?\s*(banesco|provincial|mercantil|venezuela|bdv|venezolano\s+de\s+credito|bancamiga|banplus|bnc|binance|zinli|wafull|paypal|mercadopago|zelle|bancaribe|banco\s+del\s+tesoro|banex|bicentenario|banco\s+activo|100%banco|banfanb|bancrecer|banco\s+caroni|banco\s+exterior|banco\s+industrial|banco\s+plaza|banco\s+nacional\s+de\s+credito|bnc)/i);
+            
+            if (!matchBancoReceptor) {
+                matchBancoReceptor = txt.match(/(banesco|provincial|mercantil|venezuela|bdv|bancamiga|banplus|bnc)\s*(?:receptor|destino)/i);
+            }
+
+            let matchMonto = txt.match(/(?:monto|bs\.?|usd|total|pago|importe|valor)\s*[:#]?\s*[bs$]?\.?\s*([\d,.]+(?:[.,]\d{1,2})?)/i);
+            
+            if (!matchMonto) {
+                const montoCandidates = txt.match(/(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?)/g);
+                if (montoCandidates) {
+                    let maxMonto = 0;
+                    let maxStr = "0";
+                    for (const cand of montoCandidates) {
+                        const num = parseFloat(normalizarMonto(cand));
+                        if (num > maxMonto && num > 10) {
+                            maxMonto = num;
+                            maxStr = cand;
+                        }
+                    }
+                    if (maxMonto > 0) {
+                        matchMonto = [null, maxStr];
+                    }
+                }
+            }
+
+            let montoNumerico = 0;
+            if (matchMonto) {
+                let mStr = matchMonto[1];
+                montoNumerico = parseFloat(normalizarMonto(mStr));
+            }
+
+            let matchConcepto = txt.match(/(?:concepto|motivo|descripcion|detalle|razon)\s*[:#]?\s*([a-záéíóúñ\s\d]{5,40})/i);
+            let concepto = matchConcepto ? matchConcepto[1].trim() : "N/A";
+
+            if (concepto === "N/A" || concepto.length < 3) {
+                const matchConceptoAlt = txt.match(/(?:pago|transferencia|deposito|abono)\s*(?:de|por)?\s*([a-záéíóúñ\s\d]{5,40})/i);
+                if (matchConceptoAlt) {
+                    const alt = matchConceptoAlt[1].trim();
+                    if (!/^\d+$/.test(alt) && alt.length > 3) {
+                        concepto = alt;
+                    }
+                }
+            }
+
+            ultimoPagoParsed = {
+                referencia: referencia,
+                fecha: matchFecha ? matchFecha[1] : "N/A",
+                telefonoOrigen: matchTelOrigen ? matchTelOrigen[1] : "N/A",
+                telefonoDestino: matchTelDestino ? matchTelDestino[1] : "N/A",
+                cedula: matchCedula ? matchCedula[1].toUpperCase() : "N/A",
+                bancoEmisor: matchBancoEmisor ? matchBancoEmisor[1].toUpperCase() : "Desconocido",
+                bancoReceptor: matchBancoReceptor ? matchBancoReceptor[1].toUpperCase() : "Desconocido",
+                montoBsNum: montoNumerico,
+                montoBsStr: montoNumerico > 0 ? `${montoNumerico.toFixed(2)} Bs` : "0.00 Bs",
+                concepto: concepto
+            };
+
+            document.getElementById('pmRef').innerText = ultimoPagoParsed.referencia;
+            document.getElementById('pmFecha').innerText = ultimoPagoParsed.fecha;
+            document.getElementById('pmTelefonoOrigen').innerText = ultimoPagoParsed.telefonoOrigen;
+            document.getElementById('pmTelefonoDestino').innerText = ultimoPagoParsed.telefonoDestino;
+            document.getElementById('pmCedula').innerText = ultimoPagoParsed.cedula;
+            document.getElementById('pmBancoEmisor').innerText = ultimoPagoParsed.bancoEmisor;
+            document.getElementById('pmBancoReceptor').innerText = ultimoPagoParsed.bancoReceptor;
+            document.getElementById('pmMonto').innerText = ultimoPagoParsed.montoBsStr;
+            document.getElementById('pmConcepto').innerText = ultimoPagoParsed.concepto;
+        }
+
+        function normalizarMonto(mStr) {
+            if (!mStr) return "0";
+            mStr = mStr.trim();
+
+            if (!mStr.includes('.') && !mStr.includes(',')) {
+                return mStr;
+            }
+
+            if (mStr.includes('.') && mStr.includes(',')) {
+                return mStr.replace(/\./g, '').replace(',', '.');
+            }
+
+            if (mStr.includes(',') && mStr.includes('.')) {
+                if (mStr.indexOf(',') < mStr.indexOf('.')) {
+                    return mStr.replace(/,/g, '');
+                }
+                return mStr.replace(/\./g, '').replace(',', '.');
+            }
+
+            if (mStr.includes(',') && !mStr.includes('.')) {
+                const partes = mStr.split(',');
+                if (partes.length === 2 && partes[1].length <= 2) {
+                    return mStr.replace(',', '.');
+                }
+                return mStr.replace(/,/g, '');
+            }
+
+            if (mStr.includes('.') && !mStr.includes(',')) {
+                const partes = mStr.split('.');
+                if (partes.length > 2) {
+                    return partes.join('');
+                }
+                return mStr;
+            }
+
+            return mStr;
+        }
+
+        function limpiarDatosPago() {
+            document.getElementById('txtPagoMovil').value = '';
+            document.getElementById('filePago').value = '';
+            document.getElementById('lblFile').innerText = "📁 Haz clic o arrastra la captura/imagen aquí";
+            
+            document.getElementById('pmRef').innerText = '-';
+            document.getElementById('pmFecha').innerText = '-';
+            document.getElementById('pmTelefonoOrigen').innerText = '-';
+            document.getElementById('pmTelefonoDestino').innerText = '-';
+            document.getElementById('pmCedula').innerText = '-';
+            document.getElementById('pmBancoEmisor').innerText = '-';
+            document.getElementById('pmBancoReceptor').innerText = '-';
+            document.getElementById('pmMonto').innerText = '-';
+            document.getElementById('pmConcepto').innerText = '-';
+            
+            ultimoPagoParsed = null;
+        }
+
+        function generarCorrelativo() {
+            const hoy = new Date();
+            const yyyy = hoy.getFullYear();
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoy.getDate()).padStart(2, '0');
+            const prefijoFecha = `${yyyy}${mm}${dd}`;
+
+            const pedidosHoy = pedidos.filter(p => p.id && p.id.startsWith(prefijoFecha));
+            const num = String(pedidosHoy.length + 1).padStart(3, '0');
+            return `${prefijoFecha}-${num}`;
+        }
+
+        function esPrimerPedidoDelDia() {
+            const hoyStr = new Date().toDateString();
+            return !pedidos.some(p => {
+                const f = new Date(p.fechaTimestamp || p.fecha);
+                return f.toDateString() === hoyStr;
+            });
+        }
+
+        function cerrarModalTasaDia() {
+            document.getElementById('modalTasaDia').classList.add('hidden');
+        }
+
+        function confirmarTasaDiaModal() {
+            const nuevaTasa = parseFloat(document.getElementById('inputTasaDiaModal').value);
+            if (isNaN(nuevaTasa) || nuevaTasa <= 0) return alert("Por favor ingresa una tasa válida.");
+
+            tasa = nuevaTasa;
+            document.getElementById('tasaCambio').value = tasa;
+            localStorage.setItem('ar_tasa', tasa);
+            cerrarModalTasaDia();
+
+            ejecutarRegistroOrdenWA();
+        }
+
+        function procesarOrdenWA() {
+            if (esPrimerPedidoDelDia()) {
+                document.getElementById('inputTasaDiaModal').value = tasa;
+                document.getElementById('modalTasaDia').classList.remove('hidden');
+                return;
+            }
+            ejecutarRegistroOrdenWA();
+        }
+
+        function ejecutarRegistroOrdenWA() {
+            const txt = document.getElementById('txtWhatsapp').value.trim();
+            const tlf = document.getElementById('cliTelefono').value.trim();
+            const chkCompletos = document.getElementById('chkDatosCompletos').checked;
+            const nombre = document.getElementById('cliNombre').value.trim();
+            const cedula = document.getElementById('cliCedula').value.trim();
+
+            if (!txt) return alert("Pega la orden recibida o agrega items manualmente.");
+
+            const lineas = txt.split('\n');
+            let items = [];
+            let totalUsd = 0;
+            const regex = /(\d+)x\s+([^(]+)(?:\(([^)]+)\))?\s*-\s*\$(\d+(?:\.\d+)?)/i;
+
+            for (let l of lineas) {
+                const m = l.match(regex);
+                if (m) {
+                    const cant = parseInt(m[1]);
+                    const nombreItem = m[2].trim();
+                    const sku = m[3] ? m[3].trim() : 'N/A';
+                    const precio = parseFloat(m[4]);
+
+                    const productoInven = inventario.find(i => i.sku === sku || i.descripcion.toLowerCase() === nombreItem.toLowerCase());
+
+                    if (!productoInven) {
+                        alert(`⚠️ ALERTA DE EXISTENCIA:\nEl producto "${nombreItem}" no existe en el inventario.`);
+                        return;
+                    }
+
+                    if (productoInven.stock < cant) {
+                        alert(`⚠️ ALERTA DE EXISTENCIA:\nNo hay suficiente stock para "${productoInven.descripcion}" (SKU: ${productoInven.sku}).\nStock disponible: ${productoInven.stock} | Solicitado: ${cant}`);
+                        return;
+                    }
+
+                    const subtotal = cant * precio;
+                    items.push({ cantidad: cant, nombre: nombreItem, sku: productoInven.sku, precioUnitario: precio, subtotal });
+                    totalUsd += subtotal;
+                }
+            }
+
+            if (items.length === 0) return alert("Formato no reconocido. Agregue repuestos con el selector manual.");
+
+            items.forEach(item => {
+                const prod = inventario.find(i => i.sku === item.sku);
+                if (prod) {
+                    prod.stock -= item.cantidad;
+                }
+            });
+            localStorage.setItem('ar_inventario', JSON.stringify(inventario));
+
+            const fechaActual = new Date();
+            const pedido = {
+                id: generarCorrelativo(),
+                fecha: fechaActual.toLocaleString(),
+                fechaISO: fechaActual.toISOString(),
+                fechaTimestamp: fechaActual.getTime(),
+                cliente: {
+                    telefono: tlf || 'Sin Registrar',
+                    nombre: chkCompletos && nombre ? nombre : 'Cliente General',
+                    cedula: chkCompletos && cedula ? cedula : 'N/A'
+                },
+                items, 
+                totalUsd,
+                tasaCongelada: tasa,
+                estado: 'Pendiente',
+                pagoMovil: ultimoPagoParsed ? { ...ultimoPagoParsed } : null
+            };
+
+            if (pedido.pagoMovil && pedido.pagoMovil.montoBsNum > 0) {
+                const totalBsCalculado = parseFloat((pedido.totalUsd * pedido.tasaCongelada).toFixed(2));
+                const diferencia = Math.abs(totalBsCalculado - pedido.pagoMovil.montoBsNum);
+                
+                if (diferencia <= 1.0) {
+                    pedido.estado = 'Conciliado';
+                }
+            }
+
+            pedidos.unshift(pedido);
+            localStorage.setItem('ar_pedidos', JSON.stringify(pedidos));
+            
+            document.getElementById('txtWhatsapp').value = '';
+            document.getElementById('cliTelefono').value = '';
+            document.getElementById('cliNombre').value = '';
+            document.getElementById('cliCedula').value = '';
+            document.getElementById('chkDatosCompletos').checked = false;
+            toggleFormCliente();
+            limpiarDatosPago();
+            
+            cambiarTab('pedidos');
+        }
+
+        function enviarWhatsAppCliente(id) {
+            const p = pedidos.find(x => x.id === id);
+            if (!p || p.estado !== 'Conciliado') {
+                alert("⚠️ Solo se puede enviar mensaje para pedidos conciliados y pagados.");
+                return;
+            }
+
+            const telefonoCliente = p.cliente?.telefono || '';
+            if (!telefonoCliente || telefonoCliente === 'Sin Registrar') {
+                alert("⚠️ El cliente no tiene número de teléfono registrado. No se puede enviar el mensaje.");
+                return;
+            }
+
+            let telefonoLimpio = telefonoCliente.replace(/[^0-9]/g, '');
+            
+            if (telefonoLimpio.length === 10) {
+                telefonoLimpio = '58' + telefonoLimpio;
+            } else if (telefonoLimpio.length === 11 && telefonoLimpio.startsWith('0')) {
+                telefonoLimpio = '58' + telefonoLimpio.substring(1);
+            }
+
+            const cli = p.cliente || { nombre: 'Cliente General', telefono: 'Sin Registrar', cedula: 'N/A' };
+            
+            let mensaje = `*COMPROBANTE DE PAGO - GRAT PARTS AUTOPARTES*\n\n`;
+            mensaje += `*Pedido:* ${p.id}\n`;
+            mensaje += `*Fecha:* ${p.fecha}\n`;
+            
+            if (cli.nombre && cli.nombre !== 'Cliente General') {
+                mensaje += `*Cliente:* ${cli.nombre}\n`;
+            }
+            
+            mensaje += `*Detalle del Pedido:*\n`;
+            
+            p.items.forEach(item => {
+                mensaje += `• ${item.cantidad}x ${item.nombre} - $${item.subtotal.toFixed(2)}\n`;
+            });
+            
+            mensaje += `*Total a Pagar:* $${p.totalUsd.toFixed(2)}\n\n`;
+            mensaje += `*PAGO VERIFICADO - GRACIAS POR SU COMPRA*\n`;
+            mensaje += `Su ticket PDF ha sido generado.\n\n`;
+            mensaje += `Gracias por su compra en GRAT PARTS AUTOPARTES 🛠️`;
+
+            const mensajeCodificado = encodeURIComponent(mensaje);
+            const urlWhatsApp = `https://wa.me/${telefonoLimpio}?text=${mensajeCodificado}`;
+            
+            window.open(urlWhatsApp, '_blank');
+            
+            navigator.clipboard.writeText(mensaje).then(() => {
+                console.log("✅ Mensaje copiado al portapapeles como respaldo.");
+            }).catch(() => {
+                console.log("No se pudo copiar al portapapeles.");
+            });
+        }
+
+        // ================================================================
+        // NUEVA FUNCIÓN: CONCILIAR PEDIDO CON VALIDACIÓN DE REFERENCIA
+        // ================================================================
+        function conciliarPedido(id) {
+            const idx = pedidos.findIndex(p => p.id === id);
+            if (idx === -1) return;
+
+            const p = pedidos[idx];
+            const totalBsCalculado = parseFloat((p.totalUsd * (p.tasaCongelada || tasa)).toFixed(2));
+
+            // Guardar pedido en validación
+            pedidoEnValidacion = { id: id, idx: idx };
+            pagoEncontrado = null;
+
+            // Mostrar modal de validación
+            const infoDiv = document.getElementById('infoPedidoValidar');
+            const cli = p.cliente || { nombre: 'Cliente General', telefono: 'Sin Registrar' };
+            infoDiv.innerHTML = `
+                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">📋 Pedido a Conciliar</div>
+                <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px;">${p.id}</div>
+                <div style="font-size: 0.75rem; color: var(--text-sub);">👤 ${cli.nombre} | 📞 ${cli.telefono}</div>
+                <div style="font-size: 0.85rem; font-weight: bold; color: var(--accent-color); margin-top: 6px;">
+                    Monto a verificar: <span style="color: var(--text-main);">${totalBsCalculado} Bs</span> ($${p.totalUsd.toFixed(2)})
+                </div>
+            `;
+
+            document.getElementById('inputRefValidar').value = '';
+            document.getElementById('resultadoValidacion').classList.add('hidden');
+            document.getElementById('panelConfirmarMatch').classList.add('hidden');
+
+            document.getElementById('modalValidarRef').classList.remove('hidden');
+
+            setTimeout(() => document.getElementById('inputRefValidar').focus(), 100);
+        }
+
+        function cerrarModalValidarRef() {
+            document.getElementById('modalValidarRef').classList.add('hidden');
+            pedidoEnValidacion = null;
+            pagoEncontrado = null;
+        }
+
+        function validarReferenciaPago() {
+            const refInput = document.getElementById('inputRefValidar').value.trim();
+            if (!refInput) return alert("Ingrese el número de referencia del pago.");
+
+            if (!pedidoEnValidacion) return;
+
+            const p = pedidos[pedidoEnValidacion.idx];
+            const totalBsCalculado = parseFloat((p.totalUsd * (p.tasaCongelada || tasa)).toFixed(2));
+
+            // Buscar en pagos asociados a pedidos pendientes (últimos 30 pedidos)
+            // Buscar en pago móvil del pedido actual y en pagos recientes pendientes
+            let pagoMatch = null;
+            let origenPago = '';
+
+            // 1. Buscar en el pago del pedido actual
+            if (p.pagoMovil && p.pagoMovil.referencia && p.pagoMovil.referencia.toUpperCase() === refInput.toUpperCase()) {
+                pagoMatch = p.pagoMovil;
+                origenPago = 'Pedido Actual';
+            }
+
+            // 2. Buscar en otros pedidos pendientes (por si el pago se cargó en otro pedido)
+            if (!pagoMatch) {
+                for (const otroPedido of pedidos) {
+                    if (otroPedido.id !== p.id && otroPedido.pagoMovil && 
+                        otroPedido.pagoMovil.referencia && 
+                        otroPedido.pagoMovil.referencia.toUpperCase() === refInput.toUpperCase()) {
+                        pagoMatch = otroPedido.pagoMovil;
+                        origenPago = `Pedido ${otroPedido.id}`;
+                        break;
+                    }
+                }
+            }
+
+            // 3. Si no se encontró, buscar en el último pago parseado en el formulario
+            if (!pagoMatch && ultimoPagoParsed && 
+                ultimoPagoParsed.referencia && 
+                ultimoPagoParsed.referencia.toUpperCase() === refInput.toUpperCase()) {
+                pagoMatch = ultimoPagoParsed;
+                origenPago = 'Comprobante Escaneado';
+            }
+
+            const resultadoDiv = document.getElementById('resultadoValidacion');
+            const panelConfirmar = document.getElementById('panelConfirmarMatch');
+
+            if (!pagoMatch) {
+                resultadoDiv.innerHTML = `
+                    <div style="color: #f43f5e; font-weight: bold; margin-bottom: 6px;">❌ Referencia NO encontrada</div>
+                    <div style="color: var(--text-sub); font-size: 0.7rem;">
+                        No se encontró ningún pago con la referencia <strong>${refInput}</strong>.<br>
+                        Verifique el número o escanee primero el comprobante.
+                    </div>
+                `;
+                resultadoDiv.style.borderColor = '#f43f5e';
+                resultadoDiv.classList.remove('hidden');
+                panelConfirmar.classList.add('hidden');
+                pagoEncontrado = null;
+                return;
+            }
+
+            // Pago encontrado - verificar monto
+            const montoPago = pagoMatch.montoBsNum || 0;
+            const diferencia = Math.abs(totalBsCalculado - montoPago);
+            const coincideMonto = montoPago > 0 && diferencia <= 2.0;
+
+            pagoEncontrado = { pago: pagoMatch, origen: origenPago };
+
+            let htmlResult = '';
+            if (coincideMonto) {
+                resultadoDiv.style.borderColor = '#10b981';
+                htmlResult += `<div style="color: #10b981; font-weight: bold; margin-bottom: 8px;">✅ ¡Pago ENCONTRADO y COINCIDE!</div>`;
+            } else if (montoPago === 0) {
+                resultadoDiv.style.borderColor = '#f59e0b';
+                htmlResult += `<div style="color: #f59e0b; font-weight: bold; margin-bottom: 8px;">⚠️ Pago encontrado pero SIN MONTO REGISTRADO</div>`;
+            } else {
+                resultadoDiv.style.borderColor = '#f59e0b';
+                htmlResult += `<div style="color: #f59e0b; font-weight: bold; margin-bottom: 8px;">⚠️ Pago encontrado pero MONTO NO COINCIDE</div>`;
+            }
+
+            htmlResult += `<div style="font-size: 0.7rem; line-height: 1.7;">`;
+            htmlResult += `<div><strong>Origen:</strong> ${origenPago}</div>`;
+            htmlResult += `<div><strong>Referencia:</strong> ${pagoMatch.referencia}</div>`;
+            htmlResult += `<div><strong>Fecha:</strong> ${pagoMatch.fecha || 'N/A'}</div>`;
+            htmlResult += `<div><strong>Banco Emisor:</strong> ${pagoMatch.bancoEmisor || 'N/A'}</div>`;
+            htmlResult += `<div><strong>Celular Origen:</strong> ${pagoMatch.telefonoOrigen || 'N/A'}</div>`;
+            htmlResult += `<div><strong>Celular Destino:</strong> ${pagoMatch.telefonoDestino || 'N/A'}</div>`;
+            htmlResult += `<div><strong>Cédula Receptor:</strong> ${pagoMatch.cedula || 'N/A'}</div>`;
+            htmlResult += `<div><strong>Monto del Pago:</strong> ${montoPago > 0 ? montoPago.toFixed(2) + ' Bs' : 'No registrado'}</div>`;
+            htmlResult += `<div><strong>Monto del Pedido:</strong> ${totalBsCalculado} Bs</div>`;
+            
+            if (montoPago > 0) {
+                if (coincideMonto) {
+                    htmlResult += `<div style="color: #10b981;"><strong>Diferencia:</strong> ${diferencia.toFixed(2)} Bs ✓</div>`;
+                } else {
+                    htmlResult += `<div style="color: #f59e0b;"><strong>Diferencia:</strong> ${diferencia.toFixed(2)} Bs ⚠️</div>`;
+                }
+            }
+            htmlResult += `</div>`;
+
+            resultadoDiv.innerHTML = htmlResult;
+            resultadoDiv.classList.remove('hidden');
+            panelConfirmar.classList.remove('hidden');
+
+            // Actualizar botón de confirmar según coincidencia
+            const btnConfirmar = panelConfirmar.querySelector('button');
+            if (coincideMonto) {
+                btnConfirmar.innerText = '✅ Confirmar Conciliación';
+                btnConfirmar.className = 'btn btn-amber';
+            } else {
+                btnConfirmar.innerText = '⚠️ Forzar Conciliación';
+                btnConfirmar.className = 'btn btn-rose';
+            }
+        }
+
+        function confirmarConciliacionManual() {
+            if (!pedidoEnValidacion || !pagoEncontrado) {
+                alert("No hay pago válido para conciliar.");
+                return;
+            }
+
+            const p = pedidos[pedidoEnValidacion.idx];
+            const totalBsCalculado = parseFloat((p.totalUsd * (p.tasaCongelada || tasa)).toFixed(2));
+            const montoPago = pagoEncontrado.pago.montoBsNum || 0;
+            const diferencia = Math.abs(totalBsCalculado - montoPago);
+
+            // Verificar duplicidad de referencia
+            const refDuplicada = pedidos.some(px => 
+                px.id !== p.id &&
+                px.estado === 'Conciliado' && 
+                px.pagoMovil && 
+                px.pagoMovil.referencia === pagoEncontrado.pago.referencia
+            );
+
+            if (refDuplicada) {
+                if (!confirm(`⚠️ ALERTA DE DUPLICIDAD:\nLa referencia ${pagoEncontrado.pago.referencia} YA EXISTE en otro pedido conciliado.\n\n¿Desea forzar esta conciliación como caso excepcional?`)) {
+                    return;
+                }
+            }
+
+            // Si el monto no coincide, confirmar
+            if (montoPago > 0 && diferencia > 2.0) {
+                if (!confirm(`⚠️ ATENCIÓN: El monto del Pago (${montoPago} Bs) no coincide exactamente con el monto del pedido (${totalBsCalculado} Bs).\n\nDiferencia: ${diferencia.toFixed(2)} Bs\n\n¿Desea forzar la conciliación?`)) {
+                    return;
+                }
+            }
+
+            // Aplicar la conciliación
+            p.pagoMovil = { ...pagoEncontrado.pago };
+            p.estado = 'Conciliado';
+            localStorage.setItem('ar_pedidos', JSON.stringify(pedidos));
+
+            cerrarModalValidarRef();
+            renderizarPedidos();
+            limpiarDatosPago();
+
+            if (confirm("✅ ¡Pago conciliado exitosamente!\n\n¿Desea enviar el comprobante por WhatsApp al cliente?")) {
+                enviarWhatsAppCliente(p.id);
+            } else {
+                alert("✅ ¡Pago conciliado exitosamente!");
+            }
+        }
+
+        function descargarPDF(id) {
+            const p = pedidos.find(x => x.id === id);
+            if (!p || p.estado !== 'Conciliado') return alert("Solo se pueden generar tickets en PDF para pedidos conciliados y pagados.");
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: [80, 180]
+            });
+
+            const cli = p.cliente || { nombre: 'Cliente General', telefono: 'Sin Registrar', cedula: 'N/A' };
+
+            let y = 10;
+            doc.setFont("courier", "bold");
+            doc.setFontSize(11);
+            doc.text("GRAT PARTS AUTOPARTES", 40, y, { align: "center" });
+            
+            y += 5;
+            doc.setFontSize(8);
+            doc.setFont("courier", "normal");
+            doc.text("Comprobante de Venta Conciliado", 40, y, { align: "center" });
+            
+            y += 4;
+            doc.text("----------------------------------", 40, y, { align: "center" });
+            
+            y += 5;
+            doc.text(`Pedido: ${p.id}`, 5, y);
+            y += 4;
+            doc.text(`Fecha: ${p.fecha}`, 5, y);
+            y += 4;
+            doc.text(`Cliente: ${cli.nombre}`, 5, y);
+            y += 4;
+            doc.text(`Tlf: ${cli.telefono}`, 5, y);
+            if (cli.cedula && cli.cedula !== 'N/A') {
+                y += 4;
+                doc.text(`CI/RIF: ${cli.cedula}`, 5, y);
+            }
+
+            y += 4;
+            doc.text("----------------------------------", 40, y, { align: "center" });
+            
+            y += 5;
+            doc.setFont("courier", "bold");
+            doc.text("Cant  Item                 Total", 5, y);
+            y += 4;
+            doc.setFont("courier", "normal");
+
+            p.items.forEach(item => {
+                const desc = item.nombre.length > 18 ? item.nombre.substring(0, 18) : item.nombre.padEnd(18, ' ');
+                doc.text(`${item.cantidad}x    ${desc} $${item.subtotal.toFixed(2)}`, 5, y);
+                y += 4;
+            });
+
+            doc.text("----------------------------------", 40, y, { align: "center" });
+            y += 5;
+
+            doc.setFont("courier", "bold");
+            doc.text(`TOTAL: $${p.totalUsd.toFixed(2)}`, 5, y);
+
+            if (p.pagoMovil) {
+                y += 6;
+                doc.setFont("courier", "normal");
+                doc.setFontSize(7);
+                doc.text("PAGO VERIFICADO - GRACIAS POR SU COMPRA", 40, y, { align: "center" });
+                doc.setFontSize(8);
+                y += 4;
+                doc.text(`Ref: ${p.pagoMovil.referencia}`, 5, y);
+                y += 4;
+                doc.text(`Banco: ${p.pagoMovil.bancoEmisor || 'N/A'}`, 5, y);
+            }
+
+            y += 8;
+            doc.setFontSize(7);
+            doc.text("¡Gracias por su compra!", 40, y, { align: "center" });
+
+            doc.save(`Ticket_${p.id}.pdf`);
+        }
+
+        function renderizarInventario() {
+            const tbody = document.getElementById('tablaInventario');
+            const busqueda = (document.getElementById('busquedaInventario')?.value || '').toLowerCase().trim();
+            const filtroStock = document.getElementById('filtroStock')?.value || 'todos';
+
+            let inventarioFiltrado = inventario;
+
+            if (busqueda) {
+                inventarioFiltrado = inventarioFiltrado.filter(p => 
+                    p.sku.toLowerCase().includes(busqueda) || 
+                    p.descripcion.toLowerCase().includes(busqueda) ||
+                    p.compatibilidad.toLowerCase().includes(busqueda)
+                );
+            }
+
+            if (filtroStock === 'critico') {
+                inventarioFiltrado = inventarioFiltrado.filter(p => p.stock > 0 && p.stock < 3);
+            } else if (filtroStock === 'agotado') {
+                inventarioFiltrado = inventarioFiltrado.filter(p => p.stock === 0);
+            }
+
+            if(inventarioFiltrado.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px;">No se encontraron artículos que coincidan con la búsqueda.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = inventarioFiltrado.map((p, i) => {
+                const stockStyle = p.stock === 0 ? "color:#f43f5e;" : (p.stock < 3 ? "color:#f59e0b;" : "");
+                const idxReal = inventario.findIndex(x => x.sku === p.sku);
+
+                return `
+                <tr>
+                    <td style="font-family:monospace; font-weight:bold;" class="text-amber">${p.sku}</td>
+                    <td><strong>${p.descripcion}</strong></td>
+                    <td style="color:var(--text-muted);">${p.compatibilidad}</td>
+                    <td style="text-align:right; font-family:monospace;" class="text-emerald">$${p.precio.toFixed(2)}</td>
+                    <td style="text-align:center; font-weight:bold; ${stockStyle}">${p.stock}</td>
+                    <td style="text-align:center;">
+                        <button onclick="eliminarRepuesto(${idxReal})" style="background:none; border:none; cursor:pointer;" title="Eliminar del catálogo">🗑️</button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function eliminarRepuesto(i) {
+            if (confirm("¿Eliminar del inventario?")) {
+                inventario.splice(i, 1);
+                localStorage.setItem('ar_inventario', JSON.stringify(inventario));
+                renderizarInventario();
+                cargarSelectorManual();
+            }
+        }
+
+        function esDelDiaActual(fechaObj) {
+            const ahora = new Date();
+            return fechaObj.getDate() === ahora.getDate() &&
+                   fechaObj.getMonth() === ahora.getMonth() &&
+                   fechaObj.getFullYear() === ahora.getFullYear();
+        }
+
+        function filtrarPedidosDebounce() {
+            clearTimeout(timeoutDebounceBusqueda);
+            timeoutDebounceBusqueda = setTimeout(() => {
+                renderizarPedidos();
+            }, 300);
+        }
+
+        function renderizarPedidos() {
+            const cont = document.getElementById('listaPedidos');
+            const busqueda = (document.getElementById('busquedaPedido')?.value || '').toLowerCase().trim();
+            const infoFiltro = document.getElementById('infoFiltroPedidos');
+
+            let pedidosFiltrados = pedidos;
+
+            if (busqueda !== '') {
+                infoFiltro.innerText = `Resultados de búsqueda global para: "${busqueda}"`;
+                pedidosFiltrados = pedidos.filter(p => {
+                    const matchId = p.id.toLowerCase().includes(busqueda);
+                    const matchFecha = p.fecha.toLowerCase().includes(busqueda);
+                    const matchTlf = p.cliente?.telefono?.toLowerCase().includes(busqueda);
+                    const matchNombre = p.cliente?.nombre?.toLowerCase().includes(busqueda);
+                    const matchCliCedula = p.cliente?.cedula?.toLowerCase().includes(busqueda);
+                    const matchPmCedula = p.pagoMovil?.cedula?.toLowerCase().includes(busqueda);
+                    const matchRef = p.pagoMovil?.referencia?.toLowerCase().includes(busqueda);
+                    const matchItems = p.items.some(i => i.nombre.toLowerCase().includes(busqueda));
+                    
+                    return matchId || matchFecha || matchTlf || matchNombre || matchCliCedula || matchPmCedula || matchRef || matchItems;
+                });
+            } else {
+                infoFiltro.innerText = "Mostrando las ventas del día de hoy.";
+                pedidosFiltrados = pedidos.filter(p => {
+                    const f = new Date(p.fechaTimestamp || p.fecha);
+                    return esDelDiaActual(f);
+                });
+            }
+
+            if (pedidosFiltrados.length === 0) {
+                cont.innerHTML = `<p style="color:var(--text-muted); text-align:center; font-size:0.8rem; padding:20px 0;">No se encontraron pedidos registrados.</p>`;
+                return;
+            }
+
+            cont.innerHTML = pedidosFiltrados.map(p => {
+                const esAnulado = p.estado === 'Anulado';
+                const esConciliado = p.estado === 'Conciliado';
+                const tasaAplicada = p.tasaCongelada || tasa;
+                const totalBsCalculado = (p.totalUsd * tasaAplicada).toFixed(2);
+                const cli = p.cliente || { nombre: 'Cliente General', telefono: 'Sin Registrar', cedula: 'N/A' };
+
+                let badgeHTML = `<span class="badge-status badge-pendiente">Pendiente Pago</span>`;
+                if (esConciliado) badgeHTML = `<span class="badge-status badge-conciliado">Pagado / Conciliado</span>`;
+                if (esAnulado) badgeHTML = `<span class="badge-status badge-anulado">Anulado</span>`;
+
+                const whatsappBtn = esConciliado ? 
+                    `<button onclick="enviarWhatsAppCliente('${p.id}')" class="btn btn-whatsapp" style="width:auto; padding:8px 10px;" title="Enviar comprobante por WhatsApp">💬</button>` : '';
+
+                return `
+                <div style="background:var(--input-bg); border:1px solid ${esAnulado ? '#f43f5e' : (esConciliado ? '#10b981' : 'var(--border)')}; padding:15px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; opacity: ${esAnulado ? '0.65' : '1'};">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <strong style="${esAnulado ? 'text-decoration: line-through;' : ''}">${p.id}</strong>
+                            ${badgeHTML}
+                        </div>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">(${p.fecha})</span>
+                        
+                        <div style="font-size:0.75rem; color:var(--text-main); margin-top:4px; font-weight:600;">
+                            👤 ${cli.nombre} | 📞 ${cli.telefono} ${cli.cedula !== 'N/A' ? `| 🪪 ${cli.cedula}` : ''}
+                        </div>
+
+                        <div style="font-size:0.75rem; color:var(--text-sub); margin-top:5px;">
+                            ${p.items.map(i => `${i.cantidad}x ${i.nombre}`).join(', ')}
+                        </div>
+                        ${p.pagoMovil ? `<div style="font-size:0.7rem; color:#10b981; margin-top:4px;">💳 Ref PM: <strong>${p.pagoMovil.referencia}</strong> (${p.pagoMovil.bancoEmisor || 'N/A'})</div>` : ''}
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <div style="text-align:right; font-family:monospace; margin-right:5px;">
+                            <div style="font-weight:bold; ${esAnulado ? 'text-decoration: line-through;' : ''}">$${p.totalUsd.toFixed(2)}</div>
+                            <div class="text-emerald" style="font-size:0.75rem; ${esAnulado ? 'text-decoration: line-through;' : ''}">${totalBsCalculado} Bs</div>
+                        </div>
+
+                        ${!esConciliado && !esAnulado ? `<button onclick="conciliarPedido('${p.id}')" class="btn btn-emerald" style="width:auto; padding:8px 12px;">📲 Cruce / Conciliar</button>` : ''}
+                        
+                        ${esConciliado ? `<button onclick="descargarPDF('${p.id}')" class="btn btn-amber" style="width:auto; padding:8px 12px;">📄 Ticket PDF</button>` : ''}
+                        
+                        ${whatsappBtn}
+
+                        ${!esAnulado ? `<button onclick="anularPedido('${p.id}')" class="btn btn-dark text-rose" style="width:auto; padding:8px 10px; border-color:#f43f5e;" title="Anular Compra">🚫</button>` : ''}
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function vaciarHistorialPedidos() {
+            const pinInput = prompt("ADMINISTRACIÓN: Ingrese PIN para autorizar vaciar el historial completo:");
+            if (pinInput === PIN_ACCESO) {
+                if (confirm("⚠️ ¿CONFIRMA QUE DESEA ELIMINAR TODO EL HISTORIAL DE PEDIDOS? Esta acción no se puede deshacer.")) {
+                    pedidos = [];
+                    localStorage.setItem('ar_pedidos', JSON.stringify(pedidos));
+                    renderizarPedidos();
+                    alert("Historial vaciado exitosamente.");
+                }
+            } else if (pinInput !== null) {
+                alert("PIN Incorrecto. Operación cancelada.");
+            }
+        }
+
+        function limpiarBusquedaPedido() {
+            const inp = document.getElementById('busquedaPedido');
+            if (inp) inp.value = '';
+            renderizarPedidos();
+        }
+
+        function anularPedido(id) {
+            if (confirm(`¿Estás seguro de anular la compra ${id}? Esta venta se descontará de los reportes y el stock reservado se liberará nuevamente.`)) {
+                const idx = pedidos.findIndex(p => p.id === id);
+                if (idx !== -1 && pedidos[idx].estado !== 'Anulado') {
+                    pedidos[idx].estado = 'Anulado';
+                    
+                    if (pedidos[idx].items) {
+                        pedidos[idx].items.forEach(item => {
+                            const prod = inventario.find(i => i.sku === item.sku);
+                            if (prod) prod.stock += item.cantidad;
+                        });
+                        localStorage.setItem('ar_inventario', JSON.stringify(inventario));
+                        renderizarInventario(); 
+                    }
+
+                    localStorage.setItem('ar_pedidos', JSON.stringify(pedidos));
+                    renderizarPedidos();
+                }
+            }
+        }
+
+        function inicializarFiltrosAnos() {
+            const selAno = document.getElementById('selAnoReporte');
+            const anoActual = new Date().getFullYear();
+            let anos = new Set([anoActual]);
+
+            pedidos.forEach(p => {
+                const f = new Date(p.fechaTimestamp || p.fecha);
+                if (!isNaN(f.getFullYear())) anos.add(f.getFullYear());
+            });
+
+            selAno.innerHTML = Array.from(anos).sort((a,b)=>b-a).map(a => `<option value="${a}">${a}</option>`).join('');
+            
+            const mesActual = new Date().getMonth();
+            document.getElementById('selMesReporte').value = mesActual;
+        }
+
+        function evaluarFiltrosPeriodo() {
+            const tipo = document.getElementById('selPeriodoReporte').value;
+            const boxAno = document.getElementById('boxFiltroAno');
+            const boxMes = document.getElementById('boxFiltroMes');
+            const boxSub = document.getElementById('boxFiltroSubPeriodo');
+            const selSub = document.getElementById('selSubPeriodoReporte');
+            const lblSub = document.getElementById('lblSubPeriodo');
+
+            boxAno.classList.add('hidden');
+            boxMes.classList.add('hidden');
+            boxSub.classList.add('hidden');
+
+            if (tipo === 'diario') {
+                // Filtra hoy
+            } else if (tipo === 'mensual') {
+                boxAno.classList.remove('hidden');
+                boxMes.classList.remove('hidden');
+            } else if (tipo === 'trimestral') {
+                boxAno.classList.remove('hidden');
+                boxSub.classList.remove('hidden');
+                lblSub.innerText = "Trimestre";
+                selSub.innerHTML = `
+                    <option value="1">Q1 (Ene - Mar)</option>
+                    <option value="2">Q2 (Abr - Jun)</option>
+                    <option value="3">Q3 (Jul - Sep)</option>
+                    <option value="4">Q4 (Oct - Dic)</option>
+                `;
+            } else if (tipo === 'semestral') {
+                boxAno.classList.remove('hidden');
+                boxSub.classList.remove('hidden');
+                lblSub.innerText = "Semestre";
+                selSub.innerHTML = `
+                    <option value="1">1er Semestre (Ene - Jun)</option>
+                    <option value="2">2do Semestre (Jul - Dic)</option>
+                `;
+            } else if (tipo === 'anual') {
+                boxAno.classList.remove('hidden');
+            }
+
+            calcularReportes();
+        }
+
+        function obtenerPedidosFiltradosPorPeriodo() {
+            const tipo = document.getElementById('selPeriodoReporte').value;
+            const anoSel = parseInt(document.getElementById('selAnoReporte').value);
+            const mesSel = parseInt(document.getElementById('selMesReporte').value);
+            const subSel = parseInt(document.getElementById('selSubPeriodoReporte').value);
+
+            return pedidos.filter(p => {
+                const f = new Date(p.fechaTimestamp || p.fecha);
+                if (isNaN(f.getTime())) return false;
+
+                if (tipo === 'diario') {
+                    return esDelDiaActual(f);
+                } else if (tipo === 'mensual') {
+                    return f.getFullYear() === anoSel && f.getMonth() === mesSel;
+                } else if (tipo === 'trimestral') {
+                    if (f.getFullYear() !== anoSel) return false;
+                    const mes = f.getMonth();
+                    if (subSel === 1) return mes >= 0 && mes <= 2;
+                    if (subSel === 2) return mes >= 3 && mes <= 5;
+                    if (subSel === 3) return mes >= 6 && mes <= 8;
+                    if (subSel === 4) return mes >= 9 && mes <= 11;
+                } else if (tipo === 'semestral') {
+                    if (f.getFullYear() !== anoSel) return false;
+                    const mes = f.getMonth();
+                    if (subSel === 1) return mes >= 0 && mes <= 5;
+                    if (subSel === 2) return mes >= 6 && mes <= 11;
+                } else if (tipo === 'anual') {
+                    return f.getFullYear() === anoSel;
+                } else if (tipo === 'historico') {
+                    return true;
+                }
+                return true;
+            });
+        }
+
+        function calcularReportes() {
+            const pedidosFiltrados = obtenerPedidosFiltradosPorPeriodo();
+            const pedidosConciliados = pedidosFiltrados.filter(p => p.estado === 'Conciliado');
+
+            let totalUsd = 0;
+            let totalBs = 0;
+            let cantRepuestos = 0;
+
+            pedidosConciliados.forEach(p => {
+                const t = p.tasaCongelada || tasa;
+                totalUsd += p.totalUsd;
+                totalBs += (p.totalUsd * t);
+                
+                if (p.items) {
+                    p.items.forEach(i => cantRepuestos += (i.cantidad || 1));
+                }
+            });
+
+            document.getElementById('metricTotalUsd').innerText = `$${totalUsd.toFixed(2)}`;
+            document.getElementById('metricTotalBs').innerText = `${totalBs.toFixed(2)} Bs`;
+            document.getElementById('metricCantPedidos').innerText = pedidosConciliados.length;
+            document.getElementById('metricCantRepuestos').innerText = cantRepuestos;
+        }
+
+        function exportarCSV() {
+            const lista = obtenerPedidosFiltradosPorPeriodo();
+            if (lista.length === 0) return alert("Sin datos para el período seleccionado.");
+
+            let csv = "\uFEFFCorrelativo,Fecha,Estado,Nombre Cliente,Telefono,Cedula,Cant Repuestos,Detalle Repuestos,Tasa Fijada,Total USD,Total Bs,Banco Emisor,Referencia PM,Fecha PM\n";
+
+            lista.forEach(p => {
+                const t = p.tasaCongelada || tasa;
+                const cli = p.cliente || { nombre: 'Cliente General', telefono: 'Sin Registrar', cedula: 'N/A' };
+                
+                let cantRep = 0;
+                let detalleRep = "";
+
+                if (p.items && p.items.length > 0) {
+                    cantRep = p.items.reduce((acc, i) => acc + (i.cantidad || 1), 0);
+                    detalleRep = p.items.map(i => `${i.cantidad}x ${i.nombre} (${i.sku})`).join(" | ");
+                }
+
+                csv += `"${p.id}","${p.fecha}","${p.estado || 'Pendiente'}","${cli.nombre}","${cli.telefono}","${cli.cedula}",${cantRep},"${detalleRep}",${t.toFixed(2)},${p.totalUsd.toFixed(2)},${(p.totalUsd * t).toFixed(2)},"${p.pagoMovil ? p.pagoMovil.bancoEmisor : 'N/A'}","${p.pagoMovil ? p.pagoMovil.referencia : 'N/A'}","${p.pagoMovil ? p.pagoMovil.fecha : 'N/A'}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `reporte_ventas_${document.getElementById('selPeriodoReporte').value}_${Date.now()}.csv`;
+            link.click();
+        }
+
+        function generarBase64Logo() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 300;
+            canvas.height = 100;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, 300, 100, 16);
+            ctx.fill();
+
+            ctx.fillStyle = accentColor;
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillText('🛠️', 10, 62);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 20px system-ui, sans-serif';
+            ctx.fillText('GRAT PARTS', 70, 48);
+
+            ctx.fillStyle = accentColor;
+            ctx.font = 'bold 20px system-ui, sans-serif';
+            ctx.fillText('AUTOPARTES', 185, 48);
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px system-ui, sans-serif';
+            ctx.fillText('SISTEMA INTEGRAL DE CONTROL', 70, 68);
+
+            return canvas.toDataURL('image/png');
+        }
+
+        async function exportarExcelEstilizado() {
+            const lista = obtenerPedidosFiltradosPorPeriodo();
+            if (lista.length === 0) return alert("Sin datos para exportar en el período seleccionado.");
+
+            const tipoPeriodo = document.getElementById('selPeriodoReporte').value.toUpperCase();
+            const anoSel = document.getElementById('selAnoReporte').value;
+
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'GRAT PARTS AUTOPARTES';
+            workbook.created = new Date();
+
+            const logoBase64 = generarBase64Logo();
+            const imageId = workbook.addImage({
+                base64: logoBase64,
+                extension: 'png'
+            });
+
+            const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E293B' } };
+            const headerFont = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+            const titleFont = { name: 'Calibri', size: 16, bold: true, color: { argb: '0F172A' } };
+            const subTitleFont = { name: 'Calibri', size: 10, italic: true, color: { argb: '64748B' } };
+            const borderStyle = {
+                top: { style: 'thin', color: { argb: 'CBD5E1' } },
+                left: { style: 'thin', color: { argb: 'CBD5E1' } },
+                bottom: { style: 'thin', color: { argb: 'CBD5E1' } },
+                right: { style: 'thin', color: { argb: 'CBD5E1' } }
+            };
+
+            const wsPedidos = workbook.addWorksheet('Detalle de Pedidos');
+
+            wsPedidos.addImage(imageId, {
+                tl: { col: 0.2, row: 0.3 },
+                ext: { width: 220, height: 70 }
+            });
+
+            wsPedidos.getCell('E2').value = "REPORTE DETALLADO DE VENTAS";
+            wsPedidos.getCell('E2').font = titleFont;
+            wsPedidos.getCell('E3').value = `PERÍODO: ${tipoPeriodo} | AÑO: ${anoSel} | EMISIÓN: ${new Date().toLocaleString()}`;
+            wsPedidos.getCell('E3').font = subTitleFont;
+
+            const headersPedidos = [
+                "CORRELATIVO", "FECHA", "ESTADO", "CLIENTE", "TELÉFONO", 
+                "CÉDULA", "CANT. ITEMS", "DETALLE DE REPUESTOS", "TASA (BS)", 
+                "TOTAL ($)", "TOTAL (BS)", "BANCO EMISOR", "REF. PAGO MÓVIL"
+            ];
+
+            const rowHeader = wsPedidos.getRow(6);
+            headersPedidos.forEach((h, i) => {
+                const cell = rowHeader.getCell(i + 1);
+                cell.value = h;
+                cell.fill = headerFill;
+                cell.font = headerFont;
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                cell.border = borderStyle;
+            });
+            rowHeader.height = 25;
+
+            let filaActual = 7;
+            lista.forEach((p, idx) => {
+                const t = p.tasaCongelada || tasa;
+                const cli = p.cliente || { nombre: 'Cliente General', telefono: 'Sin Registrar', cedula: 'N/A' };
+                let cantRep = 0;
+                let detalleRep = "";
+
+                if (p.items && p.items.length > 0) {
+                    cantRep = p.items.reduce((acc, i) => acc + (i.cantidad || 1), 0);
+                    detalleRep = p.items.map(i => `${i.cantidad}x ${i.nombre} (${i.sku})`).join(" | ");
+                }
+
+                const row = wsPedidos.getRow(filaActual);
+                row.values = [
+                    p.id,
+                    p.fecha,
+                    p.estado || 'Pendiente',
+                    cli.nombre,
+                    cli.telefono,
+                    cli.cedula,
+                    cantRep,
+                    detalleRep,
+                    t,
+                    p.totalUsd,
+                    p.totalUsd * t,
+                    p.pagoMovil ? p.pagoMovil.bancoEmisor : 'N/A',
+                    p.pagoMovil ? p.pagoMovil.referencia : 'N/A'
+                ];
+
+                const isEven = idx % 2 === 0;
+                const rowBg = isEven ? 'FFFFFF' : 'F8FAFC';
+
+                row.eachCell((cell, colNumber) => {
+                    cell.border = borderStyle;
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                    cell.font = { name: 'Calibri', size: 10 };
+
+                    if (colNumber === 1 || colNumber === 3 || colNumber === 5 || colNumber === 6) {
+                        cell.alignment = { horizontal: 'center' };
+                    }
+                    if (colNumber === 7) {
+                        cell.alignment = { horizontal: 'center' };
+                        cell.numFmt = '#,##0';
+                    }
+                    if (colNumber === 9 || colNumber === 10 || colNumber === 11) {
+                        cell.alignment = { horizontal: 'right' };
+                        cell.numFmt = colNumber === 9 ? '#,##0.00 "Bs"' : (colNumber === 10 ? '"$"#,##0.00' : '#,##0.00 "Bs"');
+                    }
+                });
+
+                filaActual++;
+            });
+
+            wsPedidos.columns = [
+                { width: 18 }, { width: 22 }, { width: 14 }, { width: 24 }, { width: 16 },
+                { width: 15 }, { width: 12 }, { width: 45 }, { width: 14 }, { width: 14 },
+                { width: 16 }, { width: 16 }, { width: 18 }
+            ];
+
+            const wsResumen = workbook.addWorksheet('Resumen y Rotación');
+
+            wsResumen.addImage(imageId, {
+                tl: { col: 0.2, row: 0.3 },
+                ext: { width: 220, height: 70 }
+            });
+
+            wsResumen.getCell('D2').value = "MÉTRICAS Y ROTACIÓN DE INVENTARIO";
+            wsResumen.getCell('D2').font = titleFont;
+            wsResumen.getCell('D3').value = `RESUMEN DE DESEMPEÑO | ${tipoPeriodo} ${anoSel}`;
+            wsResumen.getCell('D3').font = subTitleFont;
+
+            const conciliados = lista.filter(p => p.estado === 'Conciliado');
+            let totUsd = 0;
+            let totBs = 0;
+            let totItems = 0;
+
+            conciliados.forEach(p => {
+                totUsd += p.totalUsd;
+                totBs += (p.totalUsd * (p.tasaCongelada || tasa));
+                if (p.items) totItems += p.items.reduce((acc, i) => acc + (i.cantidad || 1), 0);
+            });
+
+            wsResumen.getCell('A6').value = "INDICADOR / MÉTRICA";
+            wsResumen.getCell('B6').value = "VALOR";
+            [wsResumen.getCell('A6'), wsResumen.getCell('B6')].forEach(c => {
+                c.fill = headerFill; c.font = headerFont; c.border = borderStyle;
+            });
+
+            const metricas = [
+                ["Total Pedidos Registrados", lista.length],
+                ["Pedidos Conciliados (Pagados)", conciliados.length],
+                ["Repuestos Vendidos (Unidades)", totItems],
+                ["Monto Total Conciliado (USD)", totUsd],
+                ["Monto Total Conciliado (Bs)", totBs]
+            ];
+
+            metricas.forEach((m, idx) => {
+                const r = wsResumen.getRow(7 + idx);
+                r.getCell(1).value = m[0];
+                r.getCell(2).value = m[1];
+                r.getCell(1).border = borderStyle;
+                r.getCell(2).border = borderStyle;
+                if (idx >= 3) {
+                    r.getCell(2).numFmt = idx === 3 ? '"$"#,##0.00' : '#,##0.00 "Bs"';
+                    r.getCell(2).alignment = { horizontal: 'right' };
+                } else {
+                    r.getCell(2).alignment = { horizontal: 'center' };
+                }
+            });
+
+            const conteoRepuestos = {};
+            conciliados.forEach(p => {
+                if (p.items) {
+                    p.items.forEach(i => {
+                        const clave = `${i.sku} - ${i.nombre}`;
+                        if (!conteoRepuestos[clave]) {
+                            conteoRepuestos[clave] = { sku: i.sku, nombre: i.nombre, unidades: 0, totalUsd: 0 };
+                        }
+                        conteoRepuestos[clave].unidades += (i.cantidad || 1);
+                        conteoRepuestos[clave].totalUsd += (i.subtotal || 0);
+                    });
+                }
+            });
+
+            const startRowRotacion = 14;
+            wsResumen.getCell(`A${startRowRotacion}`).value = "SKU";
+            wsResumen.getCell(`B${startRowRotacion}`).value = "REPUESTO / DESCRIPCIÓN";
+            wsResumen.getCell(`C${startRowRotacion}`).value = "UNIDADES VENDIDAS";
+            wsResumen.getCell(`D${startRowRotacion}`).value = "TOTAL GENERADO ($)";
+
+            ['A', 'B', 'C', 'D'].forEach(col => {
+                const c = wsResumen.getCell(`${col}${startRowRotacion}`);
+                c.fill = headerFill; c.font = headerFont; c.border = borderStyle;
+            });
+
+            let fRot = startRowRotacion + 1;
+            Object.values(conteoRepuestos).forEach(r => {
+                const row = wsResumen.getRow(fRot);
+                row.getCell(1).value = r.sku;
+                row.getCell(2).value = r.nombre;
+                row.getCell(3).value = r.unidades;
+                row.getCell(4).value = r.totalUsd;
+
+                row.getCell(1).alignment = { horizontal: 'center' };
+                row.getCell(3).alignment = { horizontal: 'center' };
+                row.getCell(4).alignment = { horizontal: 'right' };
+                row.getCell(4).numFmt = '"$"#,##0.00';
+
+                ['1','2','3','4'].forEach(cIdx => row.getCell(parseInt(cIdx)).border = borderStyle);
+                fRot++;
+            });
+
+            wsResumen.columns = [
+                { width: 18 }, { width: 35 }, { width: 22 }, { width: 22 }
+            ];
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            saveAs(blob, `Reporte_GRATPARTS_${tipoPeriodo}_${Date.now()}.xlsx`);
+        }
+
+        function exportarRespaldoJSON() {
+            const data = {
+                inventario: inventario,
+                pedidos: pedidos,
+                tasa: tasa,
+                pin: PIN_ACCESO,
+                personalizacion: {
+                    bgImage: bgImageData,
+                    bgOpacity: bgImageOpacity,
+                    accentColor: accentColor,
+                    accentColorHover: accentColorHover,
+                    accentContrast: accentContrast
+                }
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            saveAs(blob, `Respaldo_GRATPARTS_${new Date().toISOString().slice(0,10)}.json`);
+        }
+
+        function importarRespaldoJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.inventario && Array.isArray(data.pedidos)) {
+                        inventario = data.inventario;
+                        pedidos = data.pedidos;
+                        tasa = data.tasa || 40.0;
+                        if(data.pin) PIN_ACCESO = data.pin;
+                        
+                        localStorage.setItem('ar_inventario', JSON.stringify(inventario));
+                        localStorage.setItem('ar_pedidos', JSON.stringify(pedidos));
+                        localStorage.setItem('ar_tasa', tasa);
+                        localStorage.setItem('ar_pin', PIN_ACCESO);
+
+                        if (data.personalizacion) {
+                            const p = data.personalizacion;
+                            if (p.bgImage) {
+                                bgImageData = p.bgImage;
+                                localStorage.setItem('ar_bg_image', bgImageData);
+                            }
+                            if (p.bgOpacity !== undefined) {
+                                bgImageOpacity = p.bgOpacity;
+                                localStorage.setItem('ar_bg_opacity', bgImageOpacity);
+                            }
+                            if (p.accentColor) {
+                                accentColor = p.accentColor;
+                                localStorage.setItem('ar_accent_color', accentColor);
+                            }
+                            if (p.accentColorHover) {
+                                accentColorHover = p.accentColorHover;
+                                localStorage.setItem('ar_accent_hover', accentColorHover);
+                            }
+                            if (p.accentContrast) {
+                                accentContrast = p.accentContrast;
+                                localStorage.setItem('ar_accent_contrast', accentContrast);
+                            }
+                            aplicarPersonalizacion();
+                        }
+                        
+                        document.getElementById('tasaCambio').value = tasa;
+                        cargarSelectorManual();
+                        renderizarInventario();
+                        renderizarPedidos();
+                        actualizarUIConfiguracion();
+                        
+                        alert("✅ Datos restaurados correctamente.");
+                    } else {
+                        alert("❌ Estructura de archivo inválida.");
+                    }
+                } catch(error) {
+                    alert("❌ Error al procesar el archivo JSON.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', () => seleccionarColorPaleta(swatch));
+        });
+
+        cargarSelectorManual();
+        renderizarInventario();
+    </script>
+</body>
+</html>
